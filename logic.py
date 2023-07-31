@@ -20,8 +20,6 @@ def get_binary_number(bit_np_array):
     
     return bit_string
 
-
-
 # LOGIC GATES WE CAN USE 
 """
 AND, OR, NOT, XOR
@@ -51,6 +49,71 @@ def full_adder(a, b, cin):
 
     return np.array([sum_bit, carry_out])
 
+# Given two binary numbers which will be assumed to be sixteen bit will reurn another binary number a + b.
+def adder_16_bit(a, b):
+    a_sum_b = get_bit_np_array("0000000000000000")
+
+    cin = False
+    for x in range(16):
+        reverse_index = 15 - x
+        digit_sum = full_adder(a[reverse_index], b[reverse_index], cin)
+        a_sum_b[reverse_index] = digit_sum[0]
+        cin = digit_sum[1]
+    
 
 
+
+    return a_sum_b
+
+# Given 16 bit and its corresponding flags will return a list containing outputs, zero flag and negative flag
+def alu_16_bit(x, y, zx, nx, zy, ny, f, no):
+    zero = np.array([False for x in range(16)])
+    is_x_zero = multiplexor(x, zero, zx)
+    is_x_negate = multiplexor(is_x_zero, ~is_x_zero, nx)
+    is_y_zero = multiplexor(y, zero, zy)
+    is_y_negate = multiplexor(is_y_zero, ~is_y_zero, ny)
+    add_x_y = adder_16_bit(is_x_negate, is_y_negate)
+    and_x_y = is_x_negate & is_y_negate
+    is_add_or_and = multiplexor(and_x_y, add_x_y, f)
+    out = multiplexor(is_add_or_and, ~is_add_or_and, no)
+    ng = out[0]
+    zr = np.array_equal(out, zero)
+    return [out, zr, ng]
+
+# Given an ALU and binary flags bit representation will return a list containing output, zero flag, negative flag
+def alu_binary_flags_16_bit(x, y, bf):
+    flags_np_array = get_bit_np_array(bf)
+    zx = np.array([flags_np_array[0]])
+    nx = np.array([flags_np_array[1]])
+    zy = np.array([flags_np_array[2]])
+    ny = np.array([flags_np_array[3]])
+    f = np.array([flags_np_array[4]])
+    no = np.array([flags_np_array[5]])
+
+
+    return alu_16_bit(x, y, zx, nx, zy, ny, f, no)
+
+alu_hashmap_to_binary = dict()
+def init_alu_hashmap():
+    global alu_hashmap_to_binary
+    alu_hashmap_to_binary["ZERO"] = "101010"
+    alu_hashmap_to_binary["ONE"] = "111111"
+    alu_hashmap_to_binary["NEGATIVE_1"] = "111010"
+    alu_hashmap_to_binary["X"] = "001100"
+    alu_hashmap_to_binary["Y"] = "110000"
+    alu_hashmap_to_binary["!X"] = "001101"
+    alu_hashmap_to_binary["!Y"] = "110001"
+    alu_hashmap_to_binary["NEGATIVE_X"] = "001111"
+    alu_hashmap_to_binary["NEGATIVE_Y"] = "110011"
+    alu_hashmap_to_binary["X+1"] = "011111"
+    alu_hashmap_to_binary["Y+1"] = "110111"
+    alu_hashmap_to_binary["X-1"] = "001110"
+    alu_hashmap_to_binary["Y-1"] = "110010"
+    alu_hashmap_to_binary["X+Y"] = "000010"
+    alu_hashmap_to_binary["X-Y"] = "010011"
+    alu_hashmap_to_binary["Y-X"] = "000111"
+    alu_hashmap_to_binary["X&Y"] = "000000"
+    alu_hashmap_to_binary["X|Y"] = "010101"
+    
+init_alu_hashmap()
 
