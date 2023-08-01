@@ -64,34 +64,47 @@ def adder_16_bit(a, b):
 
 
     return a_sum_b
+zero = np.array([False for x in range(16)])
 
 # Given 16 bit and its corresponding flags will return a list containing outputs, zero flag and negative flag
 def alu_16_bit(x, y, zx, nx, zy, ny, f, no):
-    zero = np.array([False for x in range(16)])
-    is_x_zero = multiplexor(x, zero, zx)
-    is_x_negate = multiplexor(is_x_zero, ~is_x_zero, nx)
-    is_y_zero = multiplexor(y, zero, zy)
-    is_y_negate = multiplexor(is_y_zero, ~is_y_zero, ny)
-    add_x_y = adder_16_bit(is_x_negate, is_y_negate)
-    and_x_y = is_x_negate & is_y_negate
-    is_add_or_and = multiplexor(and_x_y, add_x_y, f)
-    out = multiplexor(is_add_or_and, ~is_add_or_and, no)
-    ng = out[0]
-    zr = np.array_equal(out, zero)
-    return [out, zr, ng]
+    speed_fast = True
+    if (speed_fast):
+        out = None
+        if (zx):
+            x = zero
+        if (nx):
+            x = ~x
+        if (zy):
+            y = zero
+        if (ny):
+            y = ~y
+        if (f):
+            out = adder_16_bit(x, y)
+        else:
+            out = x & y
+        if (no):
+            out = ~out
+        ng = out[0]
+        zr = np.array_equal(out, zero)
+        return [out, zr, ng]
+    
+    else:
+        is_x_zero = multiplexor(x, zero, zx)
+        is_x_negate = multiplexor(is_x_zero, ~is_x_zero, nx)
+        is_y_zero = multiplexor(y, zero, zy)
+        is_y_negate = multiplexor(is_y_zero, ~is_y_zero, ny)
+        add_x_y = adder_16_bit(is_x_negate, is_y_negate)
+        and_x_y = is_x_negate & is_y_negate
+        is_add_or_and = multiplexor(and_x_y, add_x_y, f)
+        out = multiplexor(is_add_or_and, ~is_add_or_and, no)
+        ng = out[0]
+        zr = np.array_equal(out, zero)
+        return [out, zr, ng]
 
 # Given an ALU and binary flags bit representation will return a list containing output, zero flag, negative flag
 def alu_binary_flags_16_bit(x, y, bf):
-    flags_np_array = get_bit_np_array(bf)
-    zx = np.array([flags_np_array[0]])
-    nx = np.array([flags_np_array[1]])
-    zy = np.array([flags_np_array[2]])
-    ny = np.array([flags_np_array[3]])
-    f = np.array([flags_np_array[4]])
-    no = np.array([flags_np_array[5]])
-
-
-    return alu_16_bit(x, y, zx, nx, zy, ny, f, no)
+    return alu_16_bit(x, y, bf[0], bf[1], bf[2], bf[3], bf[4], bf[5])
 
 alu_hashmap_to_binary = dict()
 def init_alu_hashmap():
@@ -117,3 +130,27 @@ def init_alu_hashmap():
     
 init_alu_hashmap()
 
+# Reason we need the cpu class is for keeping track of the registers
+class cpu_16_bit:
+    def __init__(self):
+        self.a_register = get_bit_np_array("0000000000000000")
+        self.d_register = get_bit_np_array("0000000000000000")
+
+    
+    def operation(self, inM, instruction, reset):
+        # a instruction
+        if (instruction[0] == False):
+            self.a_register = instruction
+            return
+        
+        # c instruction 111a cccc ccdd djjj
+        A_or_M = multiplexor(self.a_register, inM, instruction[3])
+
+        outM, zr, ng = alu_16_bit(self.d_register, A_or_M, instruction[4], instruction[5], instruction[6], instruction[7], instruction[8], instruction[9])
+
+        # Destination Handling
+        #if (instruction[12] == )
+
+    
+
+    

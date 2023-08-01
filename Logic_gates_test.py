@@ -185,88 +185,77 @@ class TestFunctions(unittest.TestCase):
         y = lg.get_bit_np_array("1100110011001100")
 
         expected = ["0000000000000000", True, False]
-        result = lg.alu_binary_flags_16_bit(x, y, lg.alu_hashmap_to_binary["ZERO"])
+        result = lg.alu_binary_flags_16_bit(x, y, lg.get_bit_np_array(lg.alu_hashmap_to_binary["ZERO"]))
         self.assertEqual(expected, [lg.get_binary_number(result[0]), result[1], result[2]])
 
 
         expected = ["0000000000000001", False, False]
-        result = lg.alu_binary_flags_16_bit(x, y, lg.alu_hashmap_to_binary["ONE"])
+        result = lg.alu_binary_flags_16_bit(x, y, lg.get_bit_np_array(lg.alu_hashmap_to_binary["ONE"]))
         self.assertEqual(expected, [lg.get_binary_number(result[0]), result[1], result[2]])
 
         expected = ["1111111111111111", False, True]
-        result = lg.alu_binary_flags_16_bit(x, y, lg.alu_hashmap_to_binary["NEGATIVE_1"])
+        result = lg.alu_binary_flags_16_bit(x, y, lg.get_bit_np_array(lg.alu_hashmap_to_binary["NEGATIVE_1"]))
         self.assertEqual(expected, [lg.get_binary_number(result[0]), result[1], result[2]])
 
         expected = ["0101010101010101", False, False]
-        result = lg.alu_binary_flags_16_bit(x, y, lg.alu_hashmap_to_binary["X"])
+        result = lg.alu_binary_flags_16_bit(x, y, lg.get_bit_np_array(lg.alu_hashmap_to_binary["X"]))
         self.assertEqual(expected, [lg.get_binary_number(result[0]), result[1], result[2]])
 
         expected = ["1100110011001100", False, True]
-        result = lg.alu_binary_flags_16_bit(x, y, lg.alu_hashmap_to_binary["Y"])
+        result = lg.alu_binary_flags_16_bit(x, y, lg.get_bit_np_array(lg.alu_hashmap_to_binary["Y"]))
         self.assertEqual(expected, [lg.get_binary_number(result[0]), result[1], result[2]])
 
         expected = ["1010101010101010", False, True]
-        result = lg.alu_binary_flags_16_bit(x, y, lg.alu_hashmap_to_binary["!X"])
+        result = lg.alu_binary_flags_16_bit(x, y, lg.get_bit_np_array(lg.alu_hashmap_to_binary["!X"]))
         self.assertEqual(expected, [lg.get_binary_number(result[0]), result[1], result[2]])
 
         expected = ["0011001100110011", False, False]
-        result = lg.alu_binary_flags_16_bit(x, y, lg.alu_hashmap_to_binary["!Y"])
+        result = lg.alu_binary_flags_16_bit(x, y, lg.get_bit_np_array(lg.alu_hashmap_to_binary["!Y"]))
         self.assertEqual(expected, [lg.get_binary_number(result[0]), result[1], result[2]])
 
         expected = ["1010101010101011", False, True]
-        result = lg.alu_binary_flags_16_bit(x, y, lg.alu_hashmap_to_binary["NEGATIVE_X"])
+        result = lg.alu_binary_flags_16_bit(x, y, lg.get_bit_np_array(lg.alu_hashmap_to_binary["NEGATIVE_X"]))
         self.assertEqual(expected, [lg.get_binary_number(result[0]), result[1], result[2]])
 
         expected = ["0011001100110100", False, False]
-        result = lg.alu_binary_flags_16_bit(x, y, lg.alu_hashmap_to_binary["NEGATIVE_Y"])
+        result = lg.alu_binary_flags_16_bit(x, y, lg.get_bit_np_array(lg.alu_hashmap_to_binary["NEGATIVE_Y"]))
         self.assertEqual(expected, [lg.get_binary_number(result[0]), result[1], result[2]])
 
         expected = ["0101010101010110", False, False]
-        result = lg.alu_binary_flags_16_bit(x, y, lg.alu_hashmap_to_binary["X+1"])
+        result = lg.alu_binary_flags_16_bit(x, y, lg.get_bit_np_array(lg.alu_hashmap_to_binary["X+1"]))
         self.assertEqual(expected, [lg.get_binary_number(result[0]), result[1], result[2]])
 
         expected = ["1100110011001101", False, True]
-        result = lg.alu_binary_flags_16_bit(x, y, lg.alu_hashmap_to_binary["Y+1"])
+        result = lg.alu_binary_flags_16_bit(x, y, lg.get_bit_np_array(lg.alu_hashmap_to_binary["Y+1"]))
         self.assertEqual(expected, [lg.get_binary_number(result[0]), result[1], result[2]])
 
         expected = ["0101010101010100", False, False]
-        result = lg.alu_binary_flags_16_bit(x, y, lg.alu_hashmap_to_binary["X-1"])
+        result = lg.alu_binary_flags_16_bit(x, y, lg.get_bit_np_array(lg.alu_hashmap_to_binary["X-1"]))
         self.assertEqual(expected, [lg.get_binary_number(result[0]), result[1], result[2]])
 
         expected = ["1100110011001011", False, True]
-        result = lg.alu_binary_flags_16_bit(x, y, lg.alu_hashmap_to_binary["Y-1"])
+        result = lg.alu_binary_flags_16_bit(x, y, lg.get_bit_np_array(lg.alu_hashmap_to_binary["Y-1"]))
         self.assertEqual(expected, [lg.get_binary_number(result[0]), result[1], result[2]])
         
         expected = ["0010001000100001", False, False]
-        result = lg.alu_binary_flags_16_bit(x, y, lg.alu_hashmap_to_binary["X+Y"])
+        result = lg.alu_binary_flags_16_bit(x, y, lg.get_bit_np_array(lg.alu_hashmap_to_binary["X+Y"]))
         self.assertEqual(expected, [lg.get_binary_number(result[0]), result[1], result[2]])
 
         expected = ["1000100010001001", False, True]
-        result = lg.alu_binary_flags_16_bit(x, y, lg.alu_hashmap_to_binary["X-Y"])
+        result = lg.alu_binary_flags_16_bit(x, y, lg.get_bit_np_array(lg.alu_hashmap_to_binary["X-Y"]))
         self.assertEqual(expected, [lg.get_binary_number(result[0]), result[1], result[2]])
 
         expected = ["0111011101110111", False, False]
-        result = lg.alu_binary_flags_16_bit(x, y, lg.alu_hashmap_to_binary["Y-X"])
+        result = lg.alu_binary_flags_16_bit(x, y, lg.get_bit_np_array(lg.alu_hashmap_to_binary["Y-X"]))
         self.assertEqual(expected, [lg.get_binary_number(result[0]), result[1], result[2]])
 
         expected = ["0100010001000100", False, False]
-        result = lg.alu_binary_flags_16_bit(x, y, lg.alu_hashmap_to_binary["X&Y"])
+        result = lg.alu_binary_flags_16_bit(x, y, lg.get_bit_np_array(lg.alu_hashmap_to_binary["X&Y"]))
         self.assertEqual(expected, [lg.get_binary_number(result[0]), result[1], result[2]])
 
         expected = ["1101110111011101", False, True]
-        result = lg.alu_binary_flags_16_bit(x, y, lg.alu_hashmap_to_binary["X|Y"])
+        result = lg.alu_binary_flags_16_bit(x, y, lg.get_bit_np_array(lg.alu_hashmap_to_binary["X|Y"]))
         self.assertEqual(expected, [lg.get_binary_number(result[0]), result[1], result[2]])
-
-
-
-        
-        
-
-
-        
-        
-
-        pass
 
 
         
