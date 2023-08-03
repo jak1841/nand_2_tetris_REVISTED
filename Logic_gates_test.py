@@ -10,6 +10,8 @@ class TestFunctions(unittest.TestCase):
         result = lg.get_bit_np_array(binary_string)
         self.assertTrue(np.array_equal(result, expected_result))
 
+    
+
     def test_multiplexor(self):
         a = lg.get_bit_np_array("0")
         b = lg.get_bit_np_array("0")
@@ -257,6 +259,307 @@ class TestFunctions(unittest.TestCase):
         result = lg.alu_binary_flags_16_bit(x, y, lg.get_bit_np_array(lg.alu_hashmap_to_binary["X|Y"]))
         self.assertEqual(expected, [lg.get_binary_number(result[0]), result[1], result[2]])
 
+    def test_cpu_16_bit(self):
+        cpu = lg.cpu_16_bit()
+        # a instruction
+        inM = lg.get_bit_np_array("1010111000100011")
+        instruction = lg.get_bit_np_array("0101011011111100")
+        reset = False
+        expected = [lg.get_bit_np_array("0101011011111100"), False, lg.get_bit_np_array("0101011011111100"), lg.get_bit_np_array("0000000000000001")]
+        result = cpu.operation(inM, instruction, reset)
+        self.assertTrue(np.array_equal(expected[0], result[0]))
+        self.assertEqual(expected[1], result[1])
+        self.assertTrue(np.array_equal(expected[2], result[2]))
+        self.assertTrue(np.array_equal(expected[3], result[3]))
+        self.assertTrue(np.array_equal(cpu.a_register, instruction))
+
+        cpu = lg.cpu_16_bit()
+        # c instruction
+        inM = lg.get_bit_np_array("1010111000100011")
+        a = "0"
+        comp = lg.alu_hashmap_to_binary["ZERO"]
+        dest = lg.dest_hashmap_to_binary["null"]
+        instruction = lg.get_bit_np_array("0101011011111100")
+        reset = False
+        expected = [lg.get_bit_np_array("0101011011111100"), False, lg.get_bit_np_array("0101011011111100"), lg.get_bit_np_array("0000000000000001")]
+        result = cpu.operation(inM, instruction, reset)
+        self.assertTrue(np.array_equal(expected[0], result[0]))
+        self.assertEqual(expected[1], result[1])
+        self.assertTrue(np.array_equal(expected[2], result[2]))
+        self.assertTrue(np.array_equal(expected[3], result[3]))
+
+    # Given type_instruction, a, comp, dest, jmp, returns the binary instruction for that  
+    def get_instruction(self, type_instruction, a, comp, dest, jump):
+        instruction = type_instruction + "11" + a + comp + dest + jump
+        instruction = lg.get_bit_np_array(instruction)
+        return instruction
+
+
+    def test_comp_cpu_16_bit(self):
+        cpu = lg.cpu_16_bit()
+        inM = lg.get_bit_np_array("1010111000100011")
+        instruction = self.get_instruction("1", "0", lg.alu_hashmap_to_binary["ZERO"], lg.dest_hashmap_to_binary["null"], lg.jmp_hashmap_to_binary["null"])
+        reset = False
+        expected = [lg.get_bit_np_array("0000000000000000")]
+        result = cpu.operation(inM, instruction, reset)
+        self.assertTrue(np.array_equal(expected[0], result[0]))
+
+        instruction = self.get_instruction("1", "0", lg.alu_hashmap_to_binary["ONE"], lg.dest_hashmap_to_binary["null"], lg.jmp_hashmap_to_binary["null"])
+        expected = [lg.get_bit_np_array("0000000000000001")]
+        result = cpu.operation(inM, instruction, reset)
+        self.assertTrue(np.array_equal(expected[0], result[0]))
+
+        instruction = self.get_instruction("1", "0", lg.alu_hashmap_to_binary["NEGATIVE_1"], lg.dest_hashmap_to_binary["null"], lg.jmp_hashmap_to_binary["null"])
+        expected = [lg.get_bit_np_array("1111111111111111")]
+        result = cpu.operation(inM, instruction, reset)
+        self.assertTrue(np.array_equal(expected[0], result[0]))
+
+        # Sets a 
+        instruction = lg.get_bit_np_array("0110101010010100")
+        expected = [lg.get_bit_np_array("0110101010010100")]
+        zero = lg.get_bit_np_array("0000000000000000")
+        result = cpu.operation(inM, instruction, reset)
+        self.assertTrue(np.array_equal(expected[0], result[0]))
+        self.assertTrue(np.array_equal(cpu.a_register, instruction))
+        self.assertTrue(np.array_equal(cpu.d_register, zero))
+
+        # d = a
+        instruction = self.get_instruction("1", "0", lg.alu_hashmap_to_binary["Y"], lg.dest_hashmap_to_binary["D"], lg.jmp_hashmap_to_binary["null"])
+        expected = [lg.get_bit_np_array("0110101010010100")]
+        zero = lg.get_bit_np_array("0000000000000000")
+        result = cpu.operation(inM, instruction, reset)
+        self.assertTrue(np.array_equal(expected[0], result[0]))
+        self.assertTrue(np.array_equal(cpu.a_register, lg.get_bit_np_array("0110101010010100")))
+        self.assertTrue(np.array_equal(cpu.d_register, cpu.a_register))
+
+        # sets a 
+        instruction = lg.get_bit_np_array("0101110011111111")
+        expected = [lg.get_bit_np_array("0101110011111111")]
+        result = cpu.operation(inM, instruction, reset)
+        self.assertTrue(np.array_equal(expected[0], result[0]))
+        self.assertTrue(np.array_equal(cpu.a_register, instruction))
+        self.assertTrue(np.array_equal(cpu.d_register, lg.get_bit_np_array("0110101010010100")))
+
+        # a = 0101110011111111
+        # d = 0110101010010100
+        # inM = 1010111000100011
+        instruction = self.get_instruction("1", "0", lg.alu_hashmap_to_binary["X"], lg.dest_hashmap_to_binary["null"], lg.jmp_hashmap_to_binary["null"])
+        expected = [lg.get_bit_np_array("0110101010010100")]
+        result = cpu.operation(inM, instruction, reset)
+        self.assertTrue(np.array_equal(expected[0], result[0]))
+
+        # a = 0101110011111111
+        # d = 0110101010010100
+        # inM = 1010111000100011
+        instruction = self.get_instruction("1", "0", lg.alu_hashmap_to_binary["Y"], lg.dest_hashmap_to_binary["null"], lg.jmp_hashmap_to_binary["null"])
+        expected = [lg.get_bit_np_array("0101110011111111")]
+        result = cpu.operation(inM, instruction, reset)
+        self.assertTrue(np.array_equal(expected[0], result[0]))
+
+        # a = 0101110011111111
+        # d = 0110101010010100
+        # inM = 1010111000100011
+        instruction = self.get_instruction("1", "1", lg.alu_hashmap_to_binary["Y"], lg.dest_hashmap_to_binary["null"], lg.jmp_hashmap_to_binary["null"])
+        expected = [lg.get_bit_np_array("1010111000100011")]
+        result = cpu.operation(inM, instruction, reset)
+        self.assertTrue(np.array_equal(expected[0], result[0]))
+
+        # a = 0101110011111111
+        # d = 0110101010010100
+        # inM = 1010111000100011
+        instruction = self.get_instruction("1", "0", lg.alu_hashmap_to_binary["!X"], lg.dest_hashmap_to_binary["null"], lg.jmp_hashmap_to_binary["null"])
+        expected = [lg.get_bit_np_array("1001010101101011")]
+        result = cpu.operation(inM, instruction, reset)
+        self.assertTrue(np.array_equal(expected[0], result[0]))
+
+        # a = 0101110011111111
+        # d = 0110101010010100
+        # inM = 1010111000100011
+        instruction = self.get_instruction("1", "0", lg.alu_hashmap_to_binary["!Y"], lg.dest_hashmap_to_binary["null"], lg.jmp_hashmap_to_binary["null"])
+        expected = [lg.get_bit_np_array("1010001100000000")]
+        result = cpu.operation(inM, instruction, reset)
+        self.assertTrue(np.array_equal(expected[0], result[0]))
+
+        instruction = self.get_instruction("1", "1", lg.alu_hashmap_to_binary["!Y"], lg.dest_hashmap_to_binary["null"], lg.jmp_hashmap_to_binary["null"])
+        expected = [lg.get_bit_np_array("0101000111011100")]
+        result = cpu.operation(inM, instruction, reset)
+        self.assertTrue(np.array_equal(expected[0], result[0]))
+
+        # a = 0101110011111111
+        # d = 0110101010010100
+        # inM = 1010111000100011
+        instruction = self.get_instruction("1", "0", lg.alu_hashmap_to_binary["NEGATIVE_X"], lg.dest_hashmap_to_binary["null"], lg.jmp_hashmap_to_binary["null"])
+        expected = [lg.get_bit_np_array("1001010101101100")]
+        result = cpu.operation(inM, instruction, reset)
+        self.assertTrue(np.array_equal(expected[0], result[0]))
+
+        # a = 0101110011111111
+        # d = 0110101010010100
+        # inM = 1010111000100011
+        instruction = self.get_instruction("1", "0", lg.alu_hashmap_to_binary["NEGATIVE_Y"], lg.dest_hashmap_to_binary["null"], lg.jmp_hashmap_to_binary["null"])
+        expected = [lg.get_bit_np_array("1010001100000001")]
+        result = cpu.operation(inM, instruction, reset)
+        self.assertTrue(np.array_equal(expected[0], result[0]))
+
+        instruction = self.get_instruction("1", "1", lg.alu_hashmap_to_binary["NEGATIVE_Y"], lg.dest_hashmap_to_binary["null"], lg.jmp_hashmap_to_binary["null"])
+        expected = [lg.get_bit_np_array("0101000111011101")]
+        result = cpu.operation(inM, instruction, reset)
+        self.assertTrue(np.array_equal(expected[0], result[0]))
+
+        # a = 0101110011111111
+        # d = 0110101010010100
+        # inM = 1010111000100011
+        instruction = self.get_instruction("1", "0", lg.alu_hashmap_to_binary["X+1"], lg.dest_hashmap_to_binary["null"], lg.jmp_hashmap_to_binary["null"])
+        expected = [lg.get_bit_np_array("0110101010010101")]
+        result = cpu.operation(inM, instruction, reset)
+        self.assertTrue(np.array_equal(expected[0], result[0]))
+
+        # a = 0101110011111111
+        # d = 0110101010010100
+        # inM = 1010111000100011
+        instruction = self.get_instruction("1", "0", lg.alu_hashmap_to_binary["Y+1"], lg.dest_hashmap_to_binary["null"], lg.jmp_hashmap_to_binary["null"])
+        expected = [lg.get_bit_np_array("0101110100000000")]
+        result = cpu.operation(inM, instruction, reset)
+        self.assertTrue(np.array_equal(expected[0], result[0]))
+
+        instruction = self.get_instruction("1", "1", lg.alu_hashmap_to_binary["Y+1"], lg.dest_hashmap_to_binary["null"], lg.jmp_hashmap_to_binary["null"])
+        expected = [lg.get_bit_np_array("1010111000100100")]
+        result = cpu.operation(inM, instruction, reset)
+        self.assertTrue(np.array_equal(expected[0], result[0]))
+
+        # a = 0101110011111111
+        # d = 0110101010010100
+        # inM = 1010111000100011
+        instruction = self.get_instruction("1", "0", lg.alu_hashmap_to_binary["X-1"], lg.dest_hashmap_to_binary["null"], lg.jmp_hashmap_to_binary["null"])
+        expected = [lg.get_bit_np_array("0110101010010011")]
+        result = cpu.operation(inM, instruction, reset)
+        self.assertTrue(np.array_equal(expected[0], result[0]))
+
+        # a = 0101110011111111
+        # d = 0110101010010100
+        # inM = 1010111000100011
+        instruction = self.get_instruction("1", "0", lg.alu_hashmap_to_binary["Y-1"], lg.dest_hashmap_to_binary["null"], lg.jmp_hashmap_to_binary["null"])
+        expected = [lg.get_bit_np_array("0101110011111110")]
+        result = cpu.operation(inM, instruction, reset)
+        self.assertTrue(np.array_equal(expected[0], result[0]))
+
+        instruction = self.get_instruction("1", "1", lg.alu_hashmap_to_binary["Y-1"], lg.dest_hashmap_to_binary["null"], lg.jmp_hashmap_to_binary["null"])
+        expected = [lg.get_bit_np_array("1010111000100010")]
+        result = cpu.operation(inM, instruction, reset)
+        self.assertTrue(np.array_equal(expected[0], result[0]))
+
+        # a = 0101110011111111
+        # d = 0110101010010100
+        # inM = 1010111000100011
+        instruction = self.get_instruction("1", "0", lg.alu_hashmap_to_binary["X+Y"], lg.dest_hashmap_to_binary["null"], lg.jmp_hashmap_to_binary["null"])
+        expected = [lg.get_bit_np_array("1100011110010011")]
+        result = cpu.operation(inM, instruction, reset)
+        self.assertTrue(np.array_equal(expected[0], result[0]))
+
+        instruction = self.get_instruction("1", "1", lg.alu_hashmap_to_binary["X+Y"], lg.dest_hashmap_to_binary["null"], lg.jmp_hashmap_to_binary["null"])
+        expected = [lg.get_bit_np_array("0001100010110111")]
+        result = cpu.operation(inM, instruction, reset)
+        self.assertTrue(np.array_equal(expected[0], result[0]))
+
+        # a = 0101110011111111
+        # d = 0110101010010100
+        # inM = 1010111000100011
+        instruction = self.get_instruction("1", "0", lg.alu_hashmap_to_binary["X-Y"], lg.dest_hashmap_to_binary["null"], lg.jmp_hashmap_to_binary["null"])
+        expected = [lg.get_bit_np_array("0000110110010101")]
+        result = cpu.operation(inM, instruction, reset)
+        self.assertTrue(np.array_equal(expected[0], result[0]))
+
+        instruction = self.get_instruction("1", "1", lg.alu_hashmap_to_binary["X-Y"], lg.dest_hashmap_to_binary["null"], lg.jmp_hashmap_to_binary["null"])
+        expected = [lg.get_bit_np_array("1011110001110001")]
+        result = cpu.operation(inM, instruction, reset)
+        self.assertTrue(np.array_equal(expected[0], result[0]))
+
+        # a = 0101110011111111
+        # d = 0110101010010100
+        # inM = 1010111000100011
+        instruction = self.get_instruction("1", "0", lg.alu_hashmap_to_binary["Y-X"], lg.dest_hashmap_to_binary["null"], lg.jmp_hashmap_to_binary["null"])
+        expected = [lg.get_bit_np_array("1111001001101011")]
+        result = cpu.operation(inM, instruction, reset)
+        self.assertTrue(np.array_equal(expected[0], result[0]))
+
+        instruction = self.get_instruction("1", "1", lg.alu_hashmap_to_binary["Y-X"], lg.dest_hashmap_to_binary["null"], lg.jmp_hashmap_to_binary["null"])
+        expected = [lg.get_bit_np_array("0100001110001111")]
+        result = cpu.operation(inM, instruction, reset)
+        self.assertTrue(np.array_equal(expected[0], result[0]))
+
+        # a = 0101110011111111
+        # d = 0110101010010100
+        # inM = 1010111000100011
+        instruction = self.get_instruction("1", "0", lg.alu_hashmap_to_binary["X&Y"], lg.dest_hashmap_to_binary["null"], lg.jmp_hashmap_to_binary["null"])
+        expected = [lg.get_bit_np_array("0100100010010100")]
+        result = cpu.operation(inM, instruction, reset)
+        self.assertTrue(np.array_equal(expected[0], result[0]))
+
+        instruction = self.get_instruction("1", "1", lg.alu_hashmap_to_binary["X&Y"], lg.dest_hashmap_to_binary["null"], lg.jmp_hashmap_to_binary["null"])
+        expected = [lg.get_bit_np_array("0010101000000000")]
+        result = cpu.operation(inM, instruction, reset)
+        self.assertTrue(np.array_equal(expected[0], result[0]))
+
+        # a = 0101110011111111
+        # d = 0110101010010100
+        # inM = 1010111000100011
+        instruction = self.get_instruction("1", "0", lg.alu_hashmap_to_binary["X|Y"], lg.dest_hashmap_to_binary["null"], lg.jmp_hashmap_to_binary["null"])
+        expected = [lg.get_bit_np_array("0111111011111111")]
+        result = cpu.operation(inM, instruction, reset)
+        self.assertTrue(np.array_equal(expected[0], result[0]))
+
+        instruction = self.get_instruction("1", "1", lg.alu_hashmap_to_binary["X|Y"], lg.dest_hashmap_to_binary["null"], lg.jmp_hashmap_to_binary["null"])
+        expected = [lg.get_bit_np_array("1110111010110111")]
+        result = cpu.operation(inM, instruction, reset)
+        self.assertTrue(np.array_equal(expected[0], result[0]))
+
+        self.assertTrue(np.array_equal(cpu.program_counter, lg.get_bit_np_array("0000000000011111")))
+
+    def test_dest_cpu_16_bit(self):
+        cpu = lg.cpu_16_bit()
+        zero = lg.get_bit_np_array("0000000000000000")
+        inM = lg.get_bit_np_array("1010111000100011")
+        instruction = lg.get_bit_np_array("0001111110001001")
+        reset = False
+        cpu.operation(inM, instruction, reset)
+        self.assertTrue(np.array_equal(cpu.a_register, instruction))
+        self.assertTrue(np.array_equal(cpu.d_register, zero))
+
+        inM = lg.get_bit_np_array("1010111000100011")
+        instruction = self.get_instruction("1", "0", lg.alu_hashmap_to_binary["Y"], lg.dest_hashmap_to_binary["MD"], lg.jmp_hashmap_to_binary["null"])
+        reset = False
+        result = cpu.operation(inM, instruction, reset)
+        self.assertTrue(np.array_equal(cpu.a_register, lg.get_bit_np_array("0001111110001001")))
+        self.assertTrue(np.array_equal(cpu.d_register, lg.get_bit_np_array("0001111110001001")))
+        self.assertEqual(result[1], True)
+
+        inM = lg.get_bit_np_array("1010111000100011")
+        instruction = lg.get_bit_np_array("0100101010101110")
+        reset = False
+        result = cpu.operation(inM, instruction, reset)
+        self.assertTrue(np.array_equal(cpu.a_register, lg.get_bit_np_array("0100101010101110")))
+        self.assertTrue(np.array_equal(cpu.d_register, lg.get_bit_np_array("0001111110001001")))
+        self.assertEqual(result[1], False)
+
+    def test_jump_cpu_16_bit(self):
+        cpu = lg.cpu_16_bit()
+        inM = lg.get_bit_np_array("1010111000100011")
+        reset = False
+
+        instruction = lg.get_bit_np_array("0001111110001001")
+        cpu.operation(inM, instruction, reset)
+        instruction = self.get_instruction("1", "0", lg.alu_hashmap_to_binary["ZERO"], lg.dest_hashmap_to_binary["null"], lg.jmp_hashmap_to_binary["JMP"])
+        
+        result = cpu.operation(inM, instruction, reset)
+        self.assertTrue(np.array_equal(lg.get_bit_np_array("0001111110001001"), cpu.program_counter))
+        pass
+    
+
+
+
+
+        
+        
 
         
 

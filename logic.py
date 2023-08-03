@@ -20,6 +20,14 @@ def get_binary_number(bit_np_array):
     
     return bit_string
 
+def convert_boolean_np_array_to_a_int(bool_array):
+        binary_array = bool_array.astype(np.uint8)
+
+        # Convert binary array to integer
+        integer_value = np.packbits(binary_array).view(np.uint16)[0]
+        return integer_value
+
+
 # LOGIC GATES WE CAN USE 
 """
 AND, OR, NOT, XOR
@@ -51,7 +59,7 @@ def full_adder(a, b, cin):
 
 # Given two binary numbers which will be assumed to be sixteen bit will reurn another binary number a + b.
 def adder_16_bit(a, b):
-    a_sum_b = get_bit_np_array("0000000000000000")
+    a_sum_b = np.copy(zero)
 
     cin = False
     for x in range(16):
@@ -107,6 +115,7 @@ def alu_binary_flags_16_bit(x, y, bf):
     return alu_16_bit(x, y, bf[0], bf[1], bf[2], bf[3], bf[4], bf[5])
 
 alu_hashmap_to_binary = dict()
+
 def init_alu_hashmap():
     global alu_hashmap_to_binary
     alu_hashmap_to_binary["ZERO"] = "101010"
@@ -126,30 +135,114 @@ def init_alu_hashmap():
     alu_hashmap_to_binary["X-Y"] = "010011"
     alu_hashmap_to_binary["Y-X"] = "000111"
     alu_hashmap_to_binary["X&Y"] = "000000"
-    alu_hashmap_to_binary["X|Y"] = "010101"
-    
+    alu_hashmap_to_binary["X|Y"] = "010101" 
 init_alu_hashmap()
+
+dest_hashmap_to_binary = dict()
+def init_dest_hashmap():
+    global dest_hashmap_to_binary
+    dest_hashmap_to_binary["null"] = "000"
+    dest_hashmap_to_binary["M"] = "001"
+    dest_hashmap_to_binary["D"] = "010"
+    dest_hashmap_to_binary["MD"] = "011"
+    dest_hashmap_to_binary["A"] = "100"
+    dest_hashmap_to_binary["AM"] = "101"
+    dest_hashmap_to_binary["AD"] = "110"
+    dest_hashmap_to_binary["AMD"] = "111"  
+init_dest_hashmap()
+
+jmp_hashmap_to_binary = dict()
+def init_jmp_hashmap():
+    global jmp_hashmap_to_binary
+    jmp_hashmap_to_binary["null"] = "000"
+    jmp_hashmap_to_binary["JGT"] = "001"
+    jmp_hashmap_to_binary["JEQ"] = "010"
+    jmp_hashmap_to_binary["JGE"] = "011"
+    jmp_hashmap_to_binary["JLT"] = "100"
+    jmp_hashmap_to_binary["JNE"] = "101"
+    jmp_hashmap_to_binary["JLE"] = "110"
+    jmp_hashmap_to_binary["JMP"] = "111"
+init_jmp_hashmap()
 
 # Reason we need the cpu class is for keeping track of the registers
 class cpu_16_bit:
     def __init__(self):
         self.a_register = get_bit_np_array("0000000000000000")
         self.d_register = get_bit_np_array("0000000000000000")
+        self.program_counter = get_bit_np_array("0000000000000000")
+        self.one = get_bit_np_array("0000000000000001") # Optimization purposes
 
-    
     def operation(self, inM, instruction, reset):
         # a instruction
         if (instruction[0] == False):
             self.a_register = instruction
-            return
+            self.program_counter = adder_16_bit(self.one, self.program_counter)
+            return [instruction, False, self.a_register, self.program_counter]
         
         # c instruction 111a cccc ccdd djjj
-        A_or_M = multiplexor(self.a_register, inM, instruction[3])
+        # Reset program counter
+        if (reset):
+            self.program_counter = get_bit_np_array("0000000000000000")
+
+        A_or_M = self.a_register
+        if (instruction[3]):
+            A_or_M = inM
 
         outM, zr, ng = alu_16_bit(self.d_register, A_or_M, instruction[4], instruction[5], instruction[6], instruction[7], instruction[8], instruction[9])
 
         # Destination Handling
-        #if (instruction[12] == )
+        # Write to M
+        writeM = instruction[12]
+        # Write to A register
+        if (instruction[10]):
+            self.a_register = outM
+        # Write to d register
+        if (instruction[11]):
+            self.d_register = outM
+        
+        # Jump Handling 
+        # 000 --> NULL : NO JUMP
+        if (instruction[13] == False and instruction[14] == False and instruction[15] == False):
+            self.program_counter = adder_16_bit(self.one, self.program_counter)
+        # 001 --> JGT 
+        elif (instruction[13] == False and instruction[14] == False and instruction[15] == True):
+            if (ng == False and zr == False):
+                self.program_counter = self.a_register
+        # 010 --> JEQ
+        elif (instruction[13] == False and instruction[14] == True and instruction[15] == False):
+            if (zr):
+                self.program_counter = self.a_register
+        # 011 --> JGE
+        elif (instruction[13] == False and instruction[14] == True and instruction[15] == True):
+            if (ng == False):
+                self.program_counter = self.a_register
+        # 100 --> JLT
+        elif (instruction[13] == True and instruction[14] == False and instruction[15] == False):
+            if (ng):
+                self.program_counter = self.a_register
+        # 101 --> JNE
+        elif (instruction[13] == True and instruction[14] == False and instruction[15] == True):
+            if (zr == False):
+                self.program_counter = self.a_register
+        # 110 --> JLE
+        elif (instruction[13] == True and instruction[14] == True and instruction[15] == False):
+            if (ng or zr):
+                self.program_counter = self.a_register
+        else:
+            # JUMP 
+            self.program_counter = self.a_register
+        
+        return [outM, writeM, self.a_register, self.program_counter]
+
+
+
+class hack_computer:
+    
+
+
+        pass
+    def __init__(self):
+        pass   
 
     
 
