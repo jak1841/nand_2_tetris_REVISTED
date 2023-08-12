@@ -20,12 +20,10 @@ def get_binary_number(bit_np_array):
     
     return bit_string
 
+# This array will be used to help convert np array to int
 def convert_boolean_np_array_to_a_int(bool_array):
-        binary_array = bool_array.astype(np.uint8)
-
-        # Convert binary array to integer
-        integer_value = np.packbits(binary_array).view(np.uint16)[0]
-        return integer_value
+    integer_value = np.dot(bool_array, 1 << np.arange(bool_array.size - 1, -1, -1))
+    return integer_value
 
 
 # LOGIC GATES WE CAN USE 
@@ -64,14 +62,26 @@ def adder_16_bit(a, b):
     cin = False
     for x in range(16):
         reverse_index = 15 - x
-        digit_sum = full_adder(a[reverse_index], b[reverse_index], cin)
-        a_sum_b[reverse_index] = digit_sum[0]
-        cin = digit_sum[1]
-    
+        a_xor_b = a[reverse_index] ^ b[reverse_index]
+        a_sum_b[reverse_index] = a_xor_b ^ cin
+        cin = (a[reverse_index] & b[reverse_index]) | (cin & (a_xor_b))
 
 
 
     return a_sum_b
+
+# instead of creating a copy of np array will simply just do the results onto a and return it there.
+def adder_16_bit_no_creation(a, b):
+    cin = False
+    for x in range(16):
+        reverse_index = 15 - x
+        a_xor_b = a[reverse_index] ^ b[reverse_index]
+        temp = a[reverse_index]
+        a[reverse_index] = a_xor_b ^ cin
+        cin = (temp & b[reverse_index]) | (cin & (a_xor_b))
+    
+    return a
+
 zero = np.array([False for x in range(16)])
 
 # Given 16 bit and its corresponding flags will return a list containing outputs, zero flag and negative flag
@@ -88,7 +98,8 @@ def alu_16_bit(x, y, zx, nx, zy, ny, f, no):
         if (ny):
             y = ~y
         if (f):
-            out = adder_16_bit(x, y)
+            out = x.copy()
+            out = adder_16_bit_no_creation(out, y)
         else:
             out = x & y
         if (no):
@@ -138,6 +149,39 @@ def init_alu_hashmap():
     alu_hashmap_to_binary["X|Y"] = "010101" 
 init_alu_hashmap()
 
+comp_hashmap_to_binary = dict()
+def init_comp_hashmap():
+    global comp_hashmap_to_binary
+    comp_hashmap_to_binary["0"] = "0101010"
+    comp_hashmap_to_binary["1"] = "0111111"
+    comp_hashmap_to_binary["-1"] = "0111010"
+    comp_hashmap_to_binary["D"] = "0001100"
+    comp_hashmap_to_binary["A"] = "0110000"
+    comp_hashmap_to_binary["!D"] = "0001101"
+    comp_hashmap_to_binary["!A"] = "0110001"
+    comp_hashmap_to_binary["-D"] = "0001111"
+    comp_hashmap_to_binary["-A"] = "0110011"
+    comp_hashmap_to_binary["D+1"] = "0011111"
+    comp_hashmap_to_binary["A+1"] = "0110111"
+    comp_hashmap_to_binary["D-1"] = "0001110"
+    comp_hashmap_to_binary["A-1"] = "0110010"
+    comp_hashmap_to_binary["D+A"] = "0000010"
+    comp_hashmap_to_binary["D-A"] = "0010011"
+    comp_hashmap_to_binary["A-D"] = "0000111"
+    comp_hashmap_to_binary["D&A"] = "0000000"
+    comp_hashmap_to_binary["D|A"] = "0010101" 
+
+    comp_hashmap_to_binary["M"] = "1110000"
+    comp_hashmap_to_binary["!M"] = "1110001"
+    comp_hashmap_to_binary["-M"] = "1110011"
+    comp_hashmap_to_binary["M+1"] = "1110111"
+    comp_hashmap_to_binary["M-1"] = "1110010"
+    comp_hashmap_to_binary["D+M"] = "1000010"
+    comp_hashmap_to_binary["D-M"] = "1010011"
+    comp_hashmap_to_binary["M-D"] = "1000111"
+    comp_hashmap_to_binary["D&M"] = "1000000"
+    comp_hashmap_to_binary["D|M"] = "0010101"
+init_comp_hashmap()
 dest_hashmap_to_binary = dict()
 def init_dest_hashmap():
     global dest_hashmap_to_binary
@@ -164,7 +208,22 @@ def init_jmp_hashmap():
     jmp_hashmap_to_binary["JMP"] = "111"
 init_jmp_hashmap()
 
-# Reason we need the cpu class is for keeping track of the registers
+"""
+        INPUT:              inM [16 bit]
+                            instruction [16 bit]
+                            reset [1 bit]
+        
+        OUTPUT:             
+                            # To Data Memory
+                            outM [16 bit]
+                            writeM [1 bit]
+                            addressM [16 bit]
+
+                            # To instruction memory
+                            PC [16 bit]
+                            
+""" 
+
 class cpu_16_bit:
     def __init__(self):
         self.a_register = get_bit_np_array("0000000000000000")
@@ -172,11 +231,13 @@ class cpu_16_bit:
         self.program_counter = get_bit_np_array("0000000000000000")
         self.one = get_bit_np_array("0000000000000001") # Optimization purposes
 
+    
+
     def operation(self, inM, instruction, reset):
         # a instruction
         if (instruction[0] == False):
             self.a_register = instruction
-            self.program_counter = adder_16_bit(self.one, self.program_counter)
+            self.program_counter = adder_16_bit_no_creation(self.program_counter, self.one)
             return [instruction, False, self.a_register, self.program_counter]
         
         # c instruction 111a cccc ccdd djjj
@@ -188,7 +249,14 @@ class cpu_16_bit:
         if (instruction[3]):
             A_or_M = inM
 
+
+        
+
+
         outM, zr, ng = alu_16_bit(self.d_register, A_or_M, instruction[4], instruction[5], instruction[6], instruction[7], instruction[8], instruction[9])
+
+
+
 
         # Destination Handling
         # Write to M
@@ -203,7 +271,7 @@ class cpu_16_bit:
         # Jump Handling 
         # 000 --> NULL : NO JUMP
         if (instruction[13] == False and instruction[14] == False and instruction[15] == False):
-            self.program_counter = adder_16_bit(self.one, self.program_counter)
+            self.program_counter = adder_16_bit_no_creation(self.program_counter, self.one)
         # 001 --> JGT 
         elif (instruction[13] == False and instruction[14] == False and instruction[15] == True):
             if (ng == False and zr == False):
@@ -234,15 +302,85 @@ class cpu_16_bit:
         
         return [outM, writeM, self.a_register, self.program_counter]
 
+class hack_computer:    
+    def __init__(self):
+        self.instruction_memory = np.zeros((65536, 16), dtype=bool)
+        self.data_memory = np.zeros((65536, 16), dtype=bool)
+        self.cpu = cpu_16_bit()  
+
+        # This will be the inM value for when starting the data memory
+        self.inM = get_bit_np_array("0000000000000000") 
+
+    # Given the reset will do the hack computer operations
+    def operation(self, reset):
+        pc = convert_boolean_np_array_to_a_int(self.cpu.program_counter)
+        instruction = self.instruction_memory[pc]
+
+        outM, writeM, addressM, pc = self.cpu.operation(self.inM, instruction, reset)
+
+        addressM = convert_boolean_np_array_to_a_int(addressM)
+        if (writeM):
+            self.data_memory[addressM] = outM
+            self.inM = outM
+        else:
+            self.inM = self.data_memory[addressM]
+
+    def do_n_operations(self, reset, n):
+        for x in range(n):
+            self.operation(reset)
+    
+
+    # Loads a given program which will be in the form of list of boolean np arrays
+    def load_program(self, program):
+        self.cpu.program_counter = get_bit_np_array("0000000000000000")
+        self.instruction_memory = np.zeros((65536, 16), dtype=bool)
+        for x in range(len(program)):
+            self.instruction_memory[x] = program[x]
 
 
-class hack_computer:
+    # Show instruction memort from start and end exclusive
+    def show_instruction_memory(self, start, end):
+        instruction_memory_section = self.instruction_memory[start:end]
+        return_array = [] 
+        for x in instruction_memory_section:
+            return_array.append(get_binary_number(x))
+        
+        print(return_array)
+    # Shows data memory from start and end exclusive
+    def show_data_memory(self, start, end):
+        data_memory_section = self.data_memory[start:end]
+        return_array = [] 
+        for x in data_memory_section:
+            return_array.append(get_binary_number(x))
+        
+        print(return_array)
+        
+    
+    def show_registers(self):
+        print("Register A:", get_binary_number(self.cpu.a_register))
+        print("Register D:", get_binary_number(self.cpu.d_register))
+
+    """
+    
+        SPEED TEST FUNCTIONSS BELOW
+    
+    """
+
+    def speed_test(self):
+        self.instruction_memory = np.random.rand(65536, 16) < 1
+
+        import time
+        start_time = time.time()
+        self.do_n_operations(False, 100000)
+        print("--- %s seconds ---" % (time.time() - start_time))
+
     
 
 
-        pass
-    def __init__(self):
-        pass   
+
+
+# hack = hack_computer()
+# hack.speed_test()
 
     
 

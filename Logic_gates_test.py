@@ -1,6 +1,8 @@
 import unittest
 import numpy as np
 import logic as lg
+import assembler as assem
+
 
 
 class TestFunctions(unittest.TestCase):
@@ -10,7 +12,12 @@ class TestFunctions(unittest.TestCase):
         result = lg.get_bit_np_array(binary_string)
         self.assertTrue(np.array_equal(result, expected_result))
 
-    
+    def test_convert_np_array_to_in(self):
+        self.assertEqual(0, lg.convert_boolean_np_array_to_a_int(lg.get_bit_np_array("0000000000000000")))
+        self.assertEqual(55012, lg.convert_boolean_np_array_to_a_int(lg.get_bit_np_array("1101011011100100")))
+        self.assertEqual(52876, lg.convert_boolean_np_array_to_a_int(lg.get_bit_np_array("1100111010001100")))
+        self.assertEqual(21057, lg.convert_boolean_np_array_to_a_int(lg.get_bit_np_array("0101001001000001")))
+        self.assertEqual(14804, lg.convert_boolean_np_array_to_a_int(lg.get_bit_np_array("0011100111010100")))
 
     def test_multiplexor(self):
         a = lg.get_bit_np_array("0")
@@ -181,7 +188,24 @@ class TestFunctions(unittest.TestCase):
         b = lg.get_bit_np_array("0000000000000001")
         result = lg.get_bit_np_array("0000000000000000")
         self.assertTrue(np.array_equal(result, lg.adder_16_bit(a, b)))
-        
+
+    def test_adder_16_bit_no_creation(self):
+        a = lg.get_bit_np_array("0000000000000000")
+        b = lg.get_bit_np_array("0000000000000000")
+        result = lg.get_bit_np_array("0000000000000000")
+        self.assertTrue(np.array_equal(result, lg.adder_16_bit_no_creation(a, b)))
+
+        a = lg.get_bit_np_array("1001101010100011")
+        b = lg.get_bit_np_array("0111010110110011")
+        result = lg.get_bit_np_array("0001000001010110")
+        self.assertTrue(np.array_equal(result, lg.adder_16_bit_no_creation(a, b)))
+
+        a = lg.get_bit_np_array("1111111111111111")
+        b = lg.get_bit_np_array("0000000000000001")
+        result = lg.get_bit_np_array("0000000000000000")
+        self.assertTrue(np.array_equal(result, lg.adder_16_bit_no_creation(a, b)))
+
+
     def test_alu_16_bit(self):
         x = lg.get_bit_np_array("0101010101010101")
         y = lg.get_bit_np_array("1100110011001100")
@@ -554,9 +578,218 @@ class TestFunctions(unittest.TestCase):
         self.assertTrue(np.array_equal(lg.get_bit_np_array("0001111110001001"), cpu.program_counter))
         pass
     
+    # We can set the a register correctly
+    def test_a_instruction_assembly_code(self):
+        assembly_code = """
+            @10
+        """
+        cmp = lg.hack_computer()
+        cmp.load_program(assem.get_binary_from_hack_assembly(assembly_code))
+        cmp.do_n_operations(False, 1)
+        expected = "0000000000001010"
+        self.assertEqual(expected, lg.get_binary_number(cmp.cpu.a_register))
+
+        assembly_code = """
+            @20002
+        """
+        cmp.load_program(assem.get_binary_from_hack_assembly(assembly_code))
+        cmp.do_n_operations(False, 1)
+        expected = "0100111000100010"
+        self.assertEqual(expected, lg.get_binary_number(cmp.cpu.a_register))
+
+        assembly_code = """
+            @9210
+        """
+        cmp.load_program(assem.get_binary_from_hack_assembly(assembly_code))
+        cmp.do_n_operations(False, 1)
+        expected = "0010001111111010"
+        self.assertEqual(expected, lg.get_binary_number(cmp.cpu.a_register))
+
+    def test_dest_registers_assembly(self):
+        cmp = lg.hack_computer()
 
 
+        # null
+        assembly_code = """
+            @16
+            null=A
+            null=D
+            null=M
+        """
+        cmp.load_program(assem.get_binary_from_hack_assembly(assembly_code))
+        cmp.do_n_operations(False, 4)
+        expected_a_register = "0000000000010000"
+        expected_d_register = "0000000000000000"
+        expected_M = "0000000000000000"
+        self.assertEqual(expected_a_register, lg.get_binary_number(cmp.cpu.a_register))
+        self.assertEqual(expected_d_register, lg.get_binary_number(cmp.cpu.d_register))
+        self.assertEqual(expected_M, lg.get_binary_number(cmp.data_memory[16]))
 
+        # M
+        assembly_code = """
+            @69
+            D=A
+            @22
+            M=D
+        """
+
+        cmp.load_program(assem.get_binary_from_hack_assembly(assembly_code))
+        cmp.do_n_operations(False, 4)
+        expected_a_register = "0000000000010110"
+        expected_d_register = "0000000001000101"
+        expected_M = "0000000001000101"
+        self.assertEqual(expected_a_register, lg.get_binary_number(cmp.cpu.a_register))
+        self.assertEqual(expected_d_register, lg.get_binary_number(cmp.cpu.d_register))
+        self.assertEqual(expected_M, lg.get_binary_number(cmp.data_memory[22]))
+
+        # D
+        assembly_code = """
+            @2123
+            D=A
+        """
+
+        cmp.load_program(assem.get_binary_from_hack_assembly(assembly_code))
+        cmp.do_n_operations(False, 2)
+        expected_a_register = "0000100001001011"
+        expected_d_register = "0000100001001011"
+        expected_M = "0000000000000000"
+        self.assertEqual(expected_a_register, lg.get_binary_number(cmp.cpu.a_register))
+        self.assertEqual(expected_d_register, lg.get_binary_number(cmp.cpu.d_register))
+        self.assertEqual(expected_M, lg.get_binary_number(cmp.data_memory[2123]))
+
+        # MD
+        assembly_code = """
+            @8005
+            MD=A
+        """
+        cmp.load_program(assem.get_binary_from_hack_assembly(assembly_code))
+        cmp.do_n_operations(False, 2)
+        expected_a_register = "0001111101000101"
+        expected_d_register = "0001111101000101"
+        expected_M = "0001111101000101"
+        self.assertEqual(expected_a_register, lg.get_binary_number(cmp.cpu.a_register))
+        self.assertEqual(expected_d_register, lg.get_binary_number(cmp.cpu.d_register))
+        self.assertEqual(expected_M, lg.get_binary_number(cmp.data_memory[8005]))
+
+        # A
+        assembly_code = """
+            @4444
+            D=A+1
+            A=A
+        """
+        cmp.load_program(assem.get_binary_from_hack_assembly(assembly_code))
+        cmp.do_n_operations(False, 3)
+        expected_a_register = "0001000101011100"
+        expected_d_register = "0001000101011101"
+        expected_M = "0000000000000000"
+        self.assertEqual(expected_a_register, lg.get_binary_number(cmp.cpu.a_register))
+        self.assertEqual(expected_d_register, lg.get_binary_number(cmp.cpu.d_register))
+        self.assertEqual(expected_M, lg.get_binary_number(cmp.data_memory[4444]))
+
+        # AM
+        assembly_code = """
+            @6543
+            AM=A
+        """
+        cmp.load_program(assem.get_binary_from_hack_assembly(assembly_code))
+        cmp.do_n_operations(False, 2)
+        expected_a_register = "0001100110001111"
+        expected_d_register = "0001000101011101"
+        expected_M = "0001100110001111"
+        self.assertEqual(expected_a_register, lg.get_binary_number(cmp.cpu.a_register))
+        self.assertEqual(expected_d_register, lg.get_binary_number(cmp.cpu.d_register))
+        self.assertEqual(expected_M, lg.get_binary_number(cmp.data_memory[6543]))
+
+        #AD
+        assembly_code = """
+            @23002
+            AMD=A
+        """
+        cmp.load_program(assem.get_binary_from_hack_assembly(assembly_code))
+        cmp.do_n_operations(False, 2)
+        expected_a_register = "0101100111011010"
+        expected_d_register = "0101100111011010"
+        expected_M = "0101100111011010"
+        self.assertEqual(expected_a_register, lg.get_binary_number(cmp.cpu.a_register))
+        self.assertEqual(expected_d_register, lg.get_binary_number(cmp.cpu.d_register))
+        self.assertEqual(expected_M, lg.get_binary_number(cmp.data_memory[23002]))
+
+
+    def test_comp_assembly(self):
+        cmp = lg.hack_computer()
+
+        # 0
+        assembly_code = """
+            @12345
+            A=0
+        """
+        cmp.load_program(assem.get_binary_from_hack_assembly(assembly_code))
+        cmp.do_n_operations(False, 2)
+        expected = "0000000000000000"
+        self.assertEqual(expected, lg.get_binary_number(cmp.cpu.a_register))
+
+        # 1
+        assembly_code = """
+            @12345
+            A=1
+        """
+        cmp.load_program(assem.get_binary_from_hack_assembly(assembly_code))
+        cmp.do_n_operations(False, 2)
+        expected = "0000000000000001"
+        self.assertEqual(expected, lg.get_binary_number(cmp.cpu.a_register))
+
+        # -1
+        assembly_code = """
+            @12345
+            A=-1
+        """
+        cmp.load_program(assem.get_binary_from_hack_assembly(assembly_code))
+        cmp.do_n_operations(False, 2)
+        expected = "1111111111111111"
+        self.assertEqual(expected, lg.get_binary_number(cmp.cpu.a_register))
+
+        # D
+        assembly_code = """
+            @12345
+            D=A
+            @23
+            A=D
+        """
+        cmp.load_program(assem.get_binary_from_hack_assembly(assembly_code))
+        cmp.do_n_operations(False, 4)
+        expected = "0011000000111001"
+        self.assertEqual(expected, lg.get_binary_number(cmp.cpu.a_register))
+
+        # A
+        assembly_code = """
+            @2031
+            D=A
+            @2000
+            M=D
+            @2000
+            D=A
+
+
+        """
+        cmp.load_program(assem.get_binary_from_hack_assembly(assembly_code))
+        cmp.do_n_operations(False, 6)
+        expected = "0000011111010000"
+        self.assertEqual(expected, lg.get_binary_number(cmp.cpu.d_register))
+
+        # M
+        assembly_code = """
+            @2031
+            D=A
+            @2000
+            M=D
+            @2000
+            D=M
+        """
+        cmp.load_program(assem.get_binary_from_hack_assembly(assembly_code))
+        cmp.do_n_operations(False, 6)
+        expected = "0000011111101111"
+        self.assertEqual(expected, lg.get_binary_number(cmp.cpu.d_register))
+           
 
         
         
