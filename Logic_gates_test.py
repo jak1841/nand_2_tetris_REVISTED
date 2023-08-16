@@ -1050,7 +1050,242 @@ class TestFunctions(unittest.TestCase):
         expected = "0001001110101111"
         self.assertEqual(expected, lg.get_binary_number(cmp.cpu.d_register))
         
+    def test_jump_assembly(self):
+        cmp = lg.hack_computer()
 
+        # null
+        expected = "0000000000000000"
+        self.assertEqual(expected, lg.get_binary_number(cmp.cpu.program_counter))
+        assembly_code = """
+            @1000
+            D=D+1
+            A=M
+            D=-1
+        """
+        cmp.load_program(assem.get_binary_from_hack_assembly(assembly_code))
+        cmp.do_n_operations(False, 1)
+        expected = "0000000000000001"
+        self.assertEqual(expected, lg.get_binary_number(cmp.cpu.program_counter))
+
+        cmp.do_n_operations(False, 1)
+        expected = "0000000000000010"
+        self.assertEqual(expected, lg.get_binary_number(cmp.cpu.program_counter))
+
+        cmp.do_n_operations(False, 1)
+        expected = "0000000000000011"
+        self.assertEqual(expected, lg.get_binary_number(cmp.cpu.program_counter))
+
+        cmp.do_n_operations(False, 1)
+        expected = "0000000000000100"
+        self.assertEqual(expected, lg.get_binary_number(cmp.cpu.program_counter))
+
+        cmp.do_n_operations(False, 10000)
+        expected = "0010011100010100"
+        self.assertEqual(expected, lg.get_binary_number(cmp.cpu.program_counter))
+
+        # JGT
+        assembly_code = """
+            @1000
+            A;JGT
+        """
+        cmp.load_program(assem.get_binary_from_hack_assembly(assembly_code))
+        cmp.do_n_operations(False, 2)
+        expected = "0000001111101000"
+        self.assertEqual(expected, lg.get_binary_number(cmp.cpu.program_counter))
+
+        assembly_code = """
+            @1000
+            0;JGT
+        """
+        cmp.load_program(assem.get_binary_from_hack_assembly(assembly_code))
+        cmp.do_n_operations(False, 2)
+        expected = "0000000000000010"
+        self.assertEqual(expected, lg.get_binary_number(cmp.cpu.program_counter))
+       
+        assembly_code = """
+            @1000
+            -1;JGT
+        """
+        cmp.load_program(assem.get_binary_from_hack_assembly(assembly_code))
+        cmp.do_n_operations(False, 2)
+        expected = "0000000000000010"
+        self.assertEqual(expected, lg.get_binary_number(cmp.cpu.program_counter))
+
+        # JEQ
+        assembly_code = """
+            @1000
+            A;JEQ
+        """
+        cmp.load_program(assem.get_binary_from_hack_assembly(assembly_code))
+        cmp.do_n_operations(False, 2)
+        expected = "0000000000000010"
+        self.assertEqual(expected, lg.get_binary_number(cmp.cpu.program_counter))
+
+        assembly_code = """
+            @1000
+            -1;JEQ
+        """
+        cmp.load_program(assem.get_binary_from_hack_assembly(assembly_code))
+        cmp.do_n_operations(False, 2)
+        expected = "0000000000000010"
+        self.assertEqual(expected, lg.get_binary_number(cmp.cpu.program_counter))
+
+        assembly_code = """
+            @7
+            0;JGE
+        """
+        cmp.load_program(assem.get_binary_from_hack_assembly(assembly_code))
+        cmp.do_n_operations(False, 2)
+        expected = "0000000000000111"
+        self.assertEqual(expected, lg.get_binary_number(cmp.cpu.program_counter))
+
+        # JGE
+        assembly_code = """
+            @8
+            A;JGE
+        """
+        cmp.load_program(assem.get_binary_from_hack_assembly(assembly_code))
+        cmp.do_n_operations(False, 2)
+        expected = "0000000000001000"
+        self.assertEqual(expected, lg.get_binary_number(cmp.cpu.program_counter))
+
+        assembly_code = """
+            @15
+            0;JGE
+        """
+        cmp.load_program(assem.get_binary_from_hack_assembly(assembly_code))
+        cmp.do_n_operations(False, 2)
+        expected = "0000000000001111"
+        self.assertEqual(expected, lg.get_binary_number(cmp.cpu.program_counter))
+
+        assembly_code = """
+            @1000
+            -1;JGE
+        """
+        cmp.load_program(assem.get_binary_from_hack_assembly(assembly_code))
+        cmp.do_n_operations(False, 2)
+        expected = "0000000000000010"
+        self.assertEqual(expected, lg.get_binary_number(cmp.cpu.program_counter))
+
+
+        # JLT
+        assembly_code = """
+            @1000
+            A;JLT
+        """
+        cmp.load_program(assem.get_binary_from_hack_assembly(assembly_code))
+        cmp.do_n_operations(False, 2)
+        expected = "0000000000000010"
+        self.assertEqual(expected, lg.get_binary_number(cmp.cpu.program_counter))
+
+        assembly_code = """
+            @1000
+            0;JLT
+        """
+        cmp.load_program(assem.get_binary_from_hack_assembly(assembly_code))
+        cmp.do_n_operations(False, 2)
+        expected = "0000000000000010"
+        self.assertEqual(expected, lg.get_binary_number(cmp.cpu.program_counter))
+
+        assembly_code = """
+            @32
+            -1;JLT
+        """
+        cmp.load_program(assem.get_binary_from_hack_assembly(assembly_code))
+        cmp.do_n_operations(False, 2)
+        expected = "0000000000100000"
+        self.assertEqual(expected, lg.get_binary_number(cmp.cpu.program_counter))
+
+        # JNE
+        assembly_code = """
+            @1000
+            0;JNE
+        """
+        cmp.load_program(assem.get_binary_from_hack_assembly(assembly_code))
+        cmp.do_n_operations(False, 2)
+        expected = "0000000000000010"
+        self.assertEqual(expected, lg.get_binary_number(cmp.cpu.program_counter))
+
+        assembly_code = """
+            @9
+            1;JNE
+        """
+        cmp.load_program(assem.get_binary_from_hack_assembly(assembly_code))
+        cmp.do_n_operations(False, 2)
+        expected = "0000000000001001"
+        self.assertEqual(expected, lg.get_binary_number(cmp.cpu.program_counter))
+
+        assembly_code = """
+            @6
+            -1;JNE
+        """
+        cmp.load_program(assem.get_binary_from_hack_assembly(assembly_code))
+        cmp.do_n_operations(False, 2)
+        expected = "0000000000000110"
+        self.assertEqual(expected, lg.get_binary_number(cmp.cpu.program_counter))
+
+        # JLE
+        assembly_code = """
+            @6
+            A;JLE
+        """
+        cmp.load_program(assem.get_binary_from_hack_assembly(assembly_code))
+        cmp.do_n_operations(False, 2)
+        expected = "0000000000000010"
+        self.assertEqual(expected, lg.get_binary_number(cmp.cpu.program_counter))
+
+        assembly_code = """
+            @6
+            0;JLE
+        """
+        cmp.load_program(assem.get_binary_from_hack_assembly(assembly_code))
+        cmp.do_n_operations(False, 2)
+        expected = "0000000000000110"
+        self.assertEqual(expected, lg.get_binary_number(cmp.cpu.program_counter))
+
+        assembly_code = """
+            @6
+            -1;JLE
+        """
+        cmp.load_program(assem.get_binary_from_hack_assembly(assembly_code))
+        cmp.do_n_operations(False, 2)
+        expected = "0000000000000110"
+        self.assertEqual(expected, lg.get_binary_number(cmp.cpu.program_counter))
+
+        # JMP
+        assembly_code = """
+            @100
+            A;JMP
+        """
+        cmp.load_program(assem.get_binary_from_hack_assembly(assembly_code))
+        cmp.do_n_operations(False, 2)
+        expected = "0000000001100100"
+        self.assertEqual(expected, lg.get_binary_number(cmp.cpu.program_counter))
+
+        assembly_code = """
+            @100
+            0;JMP
+        """
+        cmp.load_program(assem.get_binary_from_hack_assembly(assembly_code))
+        cmp.do_n_operations(False, 2)
+        expected = "0000000001100100"
+        self.assertEqual(expected, lg.get_binary_number(cmp.cpu.program_counter))
+
+        assembly_code = """
+            @100
+            -1;JMP
+        """
+        cmp.load_program(assem.get_binary_from_hack_assembly(assembly_code))
+        cmp.do_n_operations(False, 2)
+        expected = "0000000001100100"
+        self.assertEqual(expected, lg.get_binary_number(cmp.cpu.program_counter))
+
+
+
+
+
+
+        pass
     
 
 

@@ -239,7 +239,7 @@ class cpu_16_bit:
             self.a_register = instruction
             self.program_counter = adder_16_bit_no_creation(self.program_counter, self.one)
             return [instruction, False, self.a_register, self.program_counter]
-        
+
         # c instruction 111a cccc ccdd djjj
         # Reset program counter
         if (reset):
@@ -276,29 +276,44 @@ class cpu_16_bit:
         elif (instruction[13] == False and instruction[14] == False and instruction[15] == True):
             if (ng == False and zr == False):
                 self.program_counter = self.a_register
+            else:
+                self.program_counter = adder_16_bit_no_creation(self.program_counter, self.one)
         # 010 --> JEQ
         elif (instruction[13] == False and instruction[14] == True and instruction[15] == False):
             if (zr):
                 self.program_counter = self.a_register
+            else:
+                self.program_counter = adder_16_bit_no_creation(self.program_counter, self.one)
         # 011 --> JGE
         elif (instruction[13] == False and instruction[14] == True and instruction[15] == True):
             if (ng == False):
                 self.program_counter = self.a_register
+            else:
+                self.program_counter = adder_16_bit_no_creation(self.program_counter, self.one)
         # 100 --> JLT
         elif (instruction[13] == True and instruction[14] == False and instruction[15] == False):
             if (ng):
                 self.program_counter = self.a_register
+            else:
+                self.program_counter = adder_16_bit_no_creation(self.program_counter, self.one)
         # 101 --> JNE
         elif (instruction[13] == True and instruction[14] == False and instruction[15] == True):
             if (zr == False):
                 self.program_counter = self.a_register
+            else:
+                self.program_counter = adder_16_bit_no_creation(self.program_counter, self.one)
         # 110 --> JLE
         elif (instruction[13] == True and instruction[14] == True and instruction[15] == False):
             if (ng or zr):
                 self.program_counter = self.a_register
+            else:
+                self.program_counter = adder_16_bit_no_creation(self.program_counter, self.one)
         else:
             # JUMP 
             self.program_counter = self.a_register
+        
+        
+
         
         return [outM, writeM, self.a_register, self.program_counter]
 
