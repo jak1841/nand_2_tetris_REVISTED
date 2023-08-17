@@ -35,9 +35,46 @@ def tokenize_string(input_string):
 def is_A_instruction(assembly_code):
     return assembly_code[0] == "@"
 
+# Given assembly code that is the form @symbol, returns true if symbol is a predefined symbol of the form SP, LCL, ARG, THIS, THAT, R0-R15, SCREEN, KBD 
+def is_predefined_symbol(assembly_code):
+    return assembly_code[1:] in ["SP", "LCL", "ARG", "THIS", "THAT", "R0", "R1", "R2", "R3", "R4", "R5", "R6", "R7", "R8", 
+                                 "R9", "R10", "R11", "R12", "R13", "R14", "R15", "SCREEN", "KBD"]
+# Given assembly code that is the form @symbol, returns the corresponding binary instruction
+def get_predefined_symbol_instruction(predefined_assembly_code):
+    switch_dict = {
+        '@SP': convert_int_to_np_array(0),
+        '@LCL': convert_int_to_np_array(1), 
+        '@ARG':convert_int_to_np_array(2), 
+        '@THIS':convert_int_to_np_array(3),
+        '@THAT':convert_int_to_np_array(4),
+        '@R0':convert_int_to_np_array(0),
+        '@R1':convert_int_to_np_array(1),
+        '@R2':convert_int_to_np_array(2),
+        '@R3':convert_int_to_np_array(3),
+        '@R4':convert_int_to_np_array(4),
+        '@R5':convert_int_to_np_array(5),
+        '@R6':convert_int_to_np_array(6),
+        '@R7':convert_int_to_np_array(7),
+        '@R8':convert_int_to_np_array(8),
+        '@R9':convert_int_to_np_array(9),
+        '@R10':convert_int_to_np_array(10),
+        '@R11':convert_int_to_np_array(11),
+        '@R12':convert_int_to_np_array(12),
+        '@R13':convert_int_to_np_array(13),
+        '@R14':convert_int_to_np_array(14),
+        '@R15':convert_int_to_np_array(15),
+        '@SCREEN':convert_int_to_np_array(16384),
+        '@KBD':convert_int_to_np_array(24576),
+    }
+
+    return switch_dict.get(predefined_assembly_code, 'NULL')
+    
 
 # returns a np array for A instruction
 def translate_A_instructions(assembly_code, jmp_label_hashmap, variable_labels_hashmap):
+    if (is_predefined_symbol(assembly_code)):
+        return get_predefined_symbol_instruction(assembly_code)
+    
     # Handling numbers
     if (assembly_code[1:].isdigit()):
         return convert_int_to_np_array(int(assembly_code[1:]))

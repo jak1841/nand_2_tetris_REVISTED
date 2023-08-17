@@ -1323,11 +1323,111 @@ class TestFunctions(unittest.TestCase):
         self.assertEqual("0001001110111010", lg.get_binary_number(cmp.cpu.d_register))
         pass
 
+    def test_predefined_symbols(self):
+        cmp = lg.hack_computer()
+
+        assembly_code = """
+            @SP
+            M=A
+            @LCL
+            M=A
+            @ARG
+            M=A
+            @THIS
+            M=A
+            @THAT
+            M=A
+
+            @R0
+            M=M+1
+            @R1
+            M=M+1
+            @R2
+            M=M+1
+            @R3
+            M=M+1
+            @R4
+            M=M+1
+
+            @R5
+            M=A
+            @R6
+            M=A
+            @R7
+            M=A
+            @R8
+            M=A
+            @R9
+            M=A
+            @R10
+            M=A
+            @R11
+            M=A
+            @R12
+            M=A
+            @R13
+            M=A
+            @R14
+            M=A
+            @R15
+            M=A
+
+            @SCREEN
+            M=A
+            @KBD
+            M=A
+            
+
+
+
+
+        """
+
+        cmp.load_program(assem.get_binary_from_hack_assembly(assembly_code))
+        cmp.do_n_operations(False, 10)
+        expected = self.convert_list_ints_to_16_bit_binary([0, 1, 2, 3, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
+        self.assertEqual(expected, cmp.get_data_memory(0, 16))
+
+        cmp.do_n_operations(False, 32)
+
+        expected = self.convert_list_ints_to_16_bit_binary([1, 2, 3, 4, 5, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15])
+        self.assertEqual(expected, cmp.get_data_memory(0, 16))
+
+        expected = self.convert_list_ints_to_16_bit_binary([0])
+        self.assertEqual(expected, cmp.get_data_memory(16384, 16384 + 1))
+        
+        expected = self.convert_list_ints_to_16_bit_binary([0])
+        self.assertEqual(expected, cmp.get_data_memory(24576, 24576 + 1))
+
+        cmp.do_n_operations(False, 4)
+        expected = self.convert_list_ints_to_16_bit_binary([16384])
+        self.assertEqual(expected, cmp.get_data_memory(16384, 16384 + 1))
+        expected = self.convert_list_ints_to_16_bit_binary([24576])
+        self.assertEqual(expected, cmp.get_data_memory(24576, 24576 + 1))
+
+
+        pass
 
     # Given an array of np array prints them in binary string format
     def show_array_of_np_arrays(self, array):
         for x in array:
             print(lg.get_binary_number(x))
+
+    def int_to_16bit_binary(self, number):
+        binary = bin(number & 0xFFFF)[2:]  # Convert to binary and remove '0b' prefix
+        padded_binary = binary.zfill(16)   # Zero-pad to ensure 16 bits
+        return padded_binary
+    
+    def convert_list_ints_to_16_bit_binary(self, array):
+        ret = []
+        for x in array:
+            result = self.int_to_16bit_binary(x)
+            ret.append(result)
+
+        return ret
+
+
+
 
 if __name__ == '__main__':
     unittest.main()

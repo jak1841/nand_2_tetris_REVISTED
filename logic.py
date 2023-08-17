@@ -371,6 +371,15 @@ class hack_computer:
             return_array.append(get_binary_number(x))
         
         print(return_array)
+    
+    # Retrieves the data memory from start and end exclusive
+    def get_data_memory(self, start, end):
+        data_memory_section = self.data_memory[start:end]
+        return_array = [] 
+        for x in data_memory_section:
+            return_array.append(get_binary_number(x))
+        
+        return return_array
         
     
     def show_registers(self):
