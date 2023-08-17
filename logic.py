@@ -237,7 +237,7 @@ class cpu_16_bit:
         # a instruction
         if (instruction[0] == False):
             self.a_register = instruction
-            self.program_counter = adder_16_bit_no_creation(self.program_counter, self.one)
+            self.program_counter = adder_16_bit(self.program_counter, self.one)
             return [instruction, False, self.a_register, self.program_counter]
 
         # c instruction 111a cccc ccdd djjj
@@ -271,43 +271,43 @@ class cpu_16_bit:
         # Jump Handling 
         # 000 --> NULL : NO JUMP
         if (instruction[13] == False and instruction[14] == False and instruction[15] == False):
-            self.program_counter = adder_16_bit_no_creation(self.program_counter, self.one)
+            self.program_counter = adder_16_bit(self.program_counter, self.one)
         # 001 --> JGT 
         elif (instruction[13] == False and instruction[14] == False and instruction[15] == True):
             if (ng == False and zr == False):
                 self.program_counter = self.a_register
             else:
-                self.program_counter = adder_16_bit_no_creation(self.program_counter, self.one)
+                self.program_counter = adder_16_bit(self.program_counter, self.one)
         # 010 --> JEQ
         elif (instruction[13] == False and instruction[14] == True and instruction[15] == False):
             if (zr):
                 self.program_counter = self.a_register
             else:
-                self.program_counter = adder_16_bit_no_creation(self.program_counter, self.one)
+                self.program_counter = adder_16_bit(self.program_counter, self.one)
         # 011 --> JGE
         elif (instruction[13] == False and instruction[14] == True and instruction[15] == True):
             if (ng == False):
                 self.program_counter = self.a_register
             else:
-                self.program_counter = adder_16_bit_no_creation(self.program_counter, self.one)
+                self.program_counter = adder_16_bit(self.program_counter, self.one)
         # 100 --> JLT
         elif (instruction[13] == True and instruction[14] == False and instruction[15] == False):
             if (ng):
                 self.program_counter = self.a_register
             else:
-                self.program_counter = adder_16_bit_no_creation(self.program_counter, self.one)
+                self.program_counter = adder_16_bit(self.program_counter, self.one)
         # 101 --> JNE
         elif (instruction[13] == True and instruction[14] == False and instruction[15] == True):
             if (zr == False):
                 self.program_counter = self.a_register
             else:
-                self.program_counter = adder_16_bit_no_creation(self.program_counter, self.one)
+                self.program_counter = adder_16_bit(self.program_counter, self.one)
         # 110 --> JLE
         elif (instruction[13] == True and instruction[14] == True and instruction[15] == False):
             if (ng or zr):
                 self.program_counter = self.a_register
             else:
-                self.program_counter = adder_16_bit_no_creation(self.program_counter, self.one)
+                self.program_counter = adder_16_bit(self.program_counter, self.one)
         else:
             # JUMP 
             self.program_counter = self.a_register
@@ -339,6 +339,8 @@ class hack_computer:
             self.inM = outM
         else:
             self.inM = self.data_memory[addressM]
+        
+        
 
     def do_n_operations(self, reset, n):
         for x in range(n):
@@ -374,6 +376,7 @@ class hack_computer:
     def show_registers(self):
         print("Register A:", get_binary_number(self.cpu.a_register))
         print("Register D:", get_binary_number(self.cpu.d_register))
+        print("PC:", get_binary_number(self.cpu.program_counter))
 
     """
     
@@ -382,7 +385,7 @@ class hack_computer:
     """
 
     def speed_test(self):
-        self.instruction_memory = np.random.rand(65536, 16) < 1
+        self.instruction_memory = np.random.rand(65536, 16) < .5
 
         import time
         start_time = time.time()

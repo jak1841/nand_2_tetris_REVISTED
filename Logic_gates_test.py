@@ -1287,7 +1287,47 @@ class TestFunctions(unittest.TestCase):
 
         pass
     
+    def test_assembly_code_test_sum_1_100_integers(self):
+        cmp = lg.hack_computer()
 
+        # 0
+        assembly_code = """
+                @i
+                M=1
+                @sum
+                M=0
+            (LOOP)
+                @i
+                D=M
+                @100
+                D=D-A
+                @PRE_END
+                D;JGT
+                @i
+                D=M
+                @sum
+                M=D+M
+                @i
+                M=M+1
+                @LOOP
+                0;JMP
+            (PRE_END)
+                @sum
+                D=M
+            (END)
+                @END
+                0;JMP
+        """
+        cmp.load_program(assem.get_binary_from_hack_assembly(assembly_code))
+        cmp.do_n_operations(False, 2000)
+        self.assertEqual("0001001110111010", lg.get_binary_number(cmp.cpu.d_register))
+        pass
+
+
+    # Given an array of np array prints them in binary string format
+    def show_array_of_np_arrays(self, array):
+        for x in array:
+            print(lg.get_binary_number(x))
 
 if __name__ == '__main__':
     unittest.main()
