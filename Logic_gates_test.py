@@ -1478,6 +1478,174 @@ class TestFunctions(unittest.TestCase):
         cmp.do_n_operations(False, 30)
         self.assertEqual("0111010100110000", lg.get_binary_number(cmp.data_memory[256]))
 
+        vm_code = [
+            "push constant 10000",
+            "push constant 20000", 
+            "add"     
+        ]
+        assembly_code = vm.convert_VM_code_to_assembly(vm_code)
+        cmp.load_program(assem.get_binary_from_hack_assembly(assembly_code))
+        cmp.do_n_operations(False, 30)
+        self.assertEqual("0111010100110000", lg.get_binary_number(cmp.data_memory[256]))
+
+        # Sub 
+        vm_code = [
+            "push constant 10000",
+            "push constant 20000", 
+            "sub"     
+        ]
+        assembly_code = vm.convert_VM_code_to_assembly(vm_code)
+        cmp.load_program(assem.get_binary_from_hack_assembly(assembly_code))
+        cmp.do_n_operations(False, 30)
+        self.assertEqual("1101100011110000", lg.get_binary_number(cmp.data_memory[256]))
+
+        vm_code = [
+            "push constant 20000",
+            "push constant 10000", 
+            "sub"     
+        ]
+        assembly_code = vm.convert_VM_code_to_assembly(vm_code)
+        cmp.load_program(assem.get_binary_from_hack_assembly(assembly_code))
+        cmp.do_n_operations(False, 30)
+        self.assertEqual("0010011100010000", lg.get_binary_number(cmp.data_memory[256]))
+
+        # Neg
+        vm_code = [
+            "push constant 12345",
+            "neg"     
+        ]
+        assembly_code = vm.convert_VM_code_to_assembly(vm_code)
+        cmp.load_program(assem.get_binary_from_hack_assembly(assembly_code))
+        cmp.do_n_operations(False, 30)
+        self.assertEqual("1100111111000111", lg.get_binary_number(cmp.data_memory[256]))
+
+        # EQ
+        vm_code = [
+            "push constant 12345",
+            "push constant 12344",
+            "eq"     
+        ]
+        assembly_code = vm.convert_VM_code_to_assembly(vm_code)
+        cmp.load_program(assem.get_binary_from_hack_assembly(assembly_code))
+        cmp.do_n_operations(False, 50)
+        self.assertEqual("0000000000000000", lg.get_binary_number(cmp.data_memory[256]))
+
+        vm_code = [
+            "push constant 12345",
+            "push constant 12346",
+            "eq"     
+        ]
+        assembly_code = vm.convert_VM_code_to_assembly(vm_code)
+        cmp.load_program(assem.get_binary_from_hack_assembly(assembly_code))
+        cmp.do_n_operations(False, 50)
+        self.assertEqual("0000000000000000", lg.get_binary_number(cmp.data_memory[256]))
+
+        vm_code = [
+            "push constant 12345",
+            "push constant 12345",
+            "eq"     
+        ]
+        assembly_code = vm.convert_VM_code_to_assembly(vm_code)
+        cmp.load_program(assem.get_binary_from_hack_assembly(assembly_code))
+        cmp.do_n_operations(False, 30)
+        self.assertEqual("1111111111111111", lg.get_binary_number(cmp.data_memory[256]))
+
+        # GT
+        vm_code = [
+            "push constant 8008",
+            "push constant 420",
+            "gt"     
+        ]
+        assembly_code = vm.convert_VM_code_to_assembly(vm_code)
+        cmp.load_program(assem.get_binary_from_hack_assembly(assembly_code))
+        cmp.do_n_operations(False, 30)
+        self.assertEqual("1111111111111111", lg.get_binary_number(cmp.data_memory[256]))
+
+        vm_code = [
+            "push constant 8008",
+            "push constant 11210",
+            "gt"     
+        ]
+        assembly_code = vm.convert_VM_code_to_assembly(vm_code)
+        cmp.load_program(assem.get_binary_from_hack_assembly(assembly_code))
+        cmp.do_n_operations(False, 50)
+        self.assertEqual("0000000000000000", lg.get_binary_number(cmp.data_memory[256]))
+
+        vm_code = [
+            "push constant 8008",
+            "push constant 8008",
+            "gt"     
+        ]
+        assembly_code = vm.convert_VM_code_to_assembly(vm_code)
+        cmp.load_program(assem.get_binary_from_hack_assembly(assembly_code))
+        cmp.do_n_operations(False, 50)
+        self.assertEqual("0000000000000000", lg.get_binary_number(cmp.data_memory[256]))
+
+        # LT
+        vm_code = [
+            "push constant 8008",
+            "push constant 8008",
+            "lt"     
+        ]
+        assembly_code = vm.convert_VM_code_to_assembly(vm_code)
+        cmp.load_program(assem.get_binary_from_hack_assembly(assembly_code))
+        cmp.do_n_operations(False, 50)
+        self.assertEqual("0000000000000000", lg.get_binary_number(cmp.data_memory[256]))
+
+        vm_code = [
+            "push constant 8009",
+            "push constant 8008",
+            "lt"     
+        ]
+        assembly_code = vm.convert_VM_code_to_assembly(vm_code)
+        cmp.load_program(assem.get_binary_from_hack_assembly(assembly_code))
+        cmp.do_n_operations(False, 50)
+        self.assertEqual("0000000000000000", lg.get_binary_number(cmp.data_memory[256]))
+
+        vm_code = [
+            "push constant 8007",
+            "push constant 8008",
+            "lt"     
+        ]
+        assembly_code = vm.convert_VM_code_to_assembly(vm_code)
+        cmp.load_program(assem.get_binary_from_hack_assembly(assembly_code))
+        cmp.do_n_operations(False, 50)
+        self.assertEqual("1111111111111111", lg.get_binary_number(cmp.data_memory[256]))
+
+        # AND
+        vm_code = [
+            "push constant 0",
+            "push constant 1",
+            "neg",
+            "and"     
+        ]
+        assembly_code = vm.convert_VM_code_to_assembly(vm_code)
+        cmp.load_program(assem.get_binary_from_hack_assembly(assembly_code))
+        cmp.do_n_operations(False, 100)
+        self.assertEqual("0000000000000000", lg.get_binary_number(cmp.data_memory[256]))
+
+        # OR 
+        vm_code = [
+            "push constant 0",
+            "push constant 1",
+            "neg",
+            "or"     
+        ]
+        assembly_code = vm.convert_VM_code_to_assembly(vm_code)
+        cmp.load_program(assem.get_binary_from_hack_assembly(assembly_code))
+        cmp.do_n_operations(False, 100)
+        self.assertEqual("1111111111111111", lg.get_binary_number(cmp.data_memory[256]))
+
+        # NOT
+        vm_code = [
+            "push constant 6372", 
+            "not"
+        ]
+        assembly_code = vm.convert_VM_code_to_assembly(vm_code)
+        cmp.load_program(assem.get_binary_from_hack_assembly(assembly_code))
+        cmp.do_n_operations(False, 100)
+        self.assertEqual("1110011100011011", lg.get_binary_number(cmp.data_memory[256]))
+
 
 
 
