@@ -2,6 +2,7 @@ import unittest
 import numpy as np
 import logic as lg
 import assembler as assem
+import vm 
 
 
 
@@ -193,17 +194,17 @@ class TestFunctions(unittest.TestCase):
         a = lg.get_bit_np_array("0000000000000000")
         b = lg.get_bit_np_array("0000000000000000")
         result = lg.get_bit_np_array("0000000000000000")
-        self.assertTrue(np.array_equal(result, lg.adder_16_bit_no_creation(a, b)))
+        self.assertTrue(np.array_equal(result, lg.adder_16_bit(a, b)))
 
         a = lg.get_bit_np_array("1001101010100011")
         b = lg.get_bit_np_array("0111010110110011")
         result = lg.get_bit_np_array("0001000001010110")
-        self.assertTrue(np.array_equal(result, lg.adder_16_bit_no_creation(a, b)))
+        self.assertTrue(np.array_equal(result, lg.adder_16_bit(a, b)))
 
         a = lg.get_bit_np_array("1111111111111111")
         b = lg.get_bit_np_array("0000000000000001")
         result = lg.get_bit_np_array("0000000000000000")
-        self.assertTrue(np.array_equal(result, lg.adder_16_bit_no_creation(a, b)))
+        self.assertTrue(np.array_equal(result, lg.adder_16_bit(a, b)))
 
 
     def test_alu_16_bit(self):
@@ -1036,6 +1037,28 @@ class TestFunctions(unittest.TestCase):
         expected = "0001001110101111"
         self.assertEqual(expected, lg.get_binary_number(cmp.cpu.d_register))
 
+        # D|M
+        assembly_code = """
+            @1
+            D=A
+            @2000
+            
+            M=-D
+            @0
+            D=0
+            @2000
+            D=D|M
+
+
+        """
+       
+
+        cmp.load_program(assem.get_binary_from_hack_assembly(assembly_code))
+        cmp.do_n_operations(False, 8)
+        expected = "1111111111111111"
+        self.assertEqual(expected, lg.get_binary_number(cmp.cpu.d_register))
+
+
         # D|A
         assembly_code = """
             @911
@@ -1048,6 +1071,21 @@ class TestFunctions(unittest.TestCase):
         cmp.load_program(assem.get_binary_from_hack_assembly(assembly_code))
         cmp.do_n_operations(False, 4)
         expected = "0001001110101111"
+        self.assertEqual(expected, lg.get_binary_number(cmp.cpu.d_register))
+
+        # D|A
+        assembly_code = """
+            @0
+            D=A
+            @1
+            A=-A
+            D=D|A
+        """
+       
+
+        cmp.load_program(assem.get_binary_from_hack_assembly(assembly_code))
+        cmp.do_n_operations(False, 5)
+        expected = "1111111111111111"
         self.assertEqual(expected, lg.get_binary_number(cmp.cpu.d_register))
         
     def test_jump_assembly(self):
@@ -1426,6 +1464,25 @@ class TestFunctions(unittest.TestCase):
 
         return ret
 
+    def test_vm_stack_arithmetic(self):
+        cmp = lg.hack_computer()
+
+        # Add
+        vm_code = [
+            "push constant 20000",
+            "push constant 10000", 
+            "add"     
+        ]
+        assembly_code = vm.convert_VM_code_to_assembly(vm_code)
+        cmp.load_program(assem.get_binary_from_hack_assembly(assembly_code))
+        cmp.do_n_operations(False, 30)
+        self.assertEqual("0111010100110000", lg.get_binary_number(cmp.data_memory[256]))
+
+
+
+
+
+        pass
 
 
 

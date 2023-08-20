@@ -24,15 +24,17 @@ cmp = lg.hack_computer()
 VM_CODE = [
     "push constant 1",
     "push constant 0", 
-    "sub"
+    "or",
 
 ]
 assembly_code = VM.convert_VM_code_to_assembly(VM_CODE)
+# print(assembly_code)
 cmp.load_program(assem.get_binary_from_hack_assembly(assembly_code))
-cmp.do_n_operations(False, 100)
+cmp.do_n_operations(False, 500)
 cmp.show_data_memory(0, 1)
 
 cmp.show_data_memory(256, 260)
+cmp.show_registers()
 
 
 

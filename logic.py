@@ -71,7 +71,7 @@ def adder_16_bit(a, b):
     return a_sum_b
 
 # instead of creating a copy of np array will simply just do the results onto a and return it there.
-def adder_16_bit_no_creation(a, b):
+def adder_16_bit_no_creatio(a, b):
     cin = False
     for x in range(16):
         reverse_index = 15 - x
@@ -98,8 +98,7 @@ def alu_16_bit(x, y, zx, nx, zy, ny, f, no):
         if (ny):
             y = ~y
         if (f):
-            out = x.copy()
-            out = adder_16_bit_no_creation(out, y)
+            out = adder_16_bit(x, y)
         else:
             out = x & y
         if (no):
@@ -180,7 +179,7 @@ def init_comp_hashmap():
     comp_hashmap_to_binary["D-M"] = "1010011"
     comp_hashmap_to_binary["M-D"] = "1000111"
     comp_hashmap_to_binary["D&M"] = "1000000"
-    comp_hashmap_to_binary["D|M"] = "0010101"
+    comp_hashmap_to_binary["D|M"] = "1010101"
 init_comp_hashmap()
 dest_hashmap_to_binary = dict()
 def init_dest_hashmap():
@@ -394,7 +393,7 @@ class hack_computer:
     """
 
     def speed_test(self):
-        self.instruction_memory = np.random.rand(65536, 16) < .5
+        self.instruction_memory = np.random.rand(65536, 16) < 1
 
         import time
         start_time = time.time()

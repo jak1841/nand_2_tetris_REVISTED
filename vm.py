@@ -6,9 +6,10 @@
 
 
 
-
+label_instruction_number = 0 
 
 def convert_VM_code_to_assembly(VM_code_array):
+    global label_instruction_number
     label_instruction_number = 0    # This will be reset and used for when we use jumps and such
     # Initial code the sets sp to correct value
     hack_assembly_code = """
@@ -28,6 +29,18 @@ def convert_VM_code_to_assembly(VM_code_array):
             hack_assembly_code+= subtract_instruction_vm_to_assembly(x)
         elif (is_neg(x)):
             hack_assembly_code+= negative_instruction_vm_to_assembly(x)
+        elif (is_equal(x)):
+            hack_assembly_code+= equal_instruction_vm_to_assembly(x)
+        elif (is_greater_than(x)):
+            hack_assembly_code+= greater_than_instruction_vm_to_assembly(x)
+        elif (is_less_than(x)):
+            hack_assembly_code+= less_than_instruction_vm_to_assembly(x)
+        elif (is_and(x)):
+            hack_assembly_code+= and_instruction_vm_to_assembly(x)
+        elif (is_or(x)):
+            hack_assembly_code+= or_instruction_vm_to_assembly(x)
+        elif (is_not(x)):
+            hack_assembly_code+= not_instruction_vm_to_assembly(x)
         else:
             raise Exception("Unknown VM instruction", x)
     
@@ -107,15 +120,124 @@ def is_equal(VM_code):
 def equal_instruction_vm_to_assembly(VM_code):
     global label_instruction_number
     label_instruction_number+= 1
+    
     return """
         @SP
         M=M-1
         A=M
         D=M
         A=A-1
-
         D=M-D
+        """ + "@LBL_EQUAL" + str(label_instruction_number) + """
+        D;JEQ
+
+        @SP
+        A=M-1
+        M=0
+        """+ "@LBL_END" + str(label_instruction_number) + """
+        0;JMP
+        """ + "(LBL_EQUAL" + str(label_instruction_number) + ")" + """
+        
+        @SP
+        A=M-1
+        M=-1
+    """ + "(LBL_END" + str(label_instruction_number) + ")"
+
+def is_greater_than(VM_code):
+    return VM_code == "gt"
+
+def greater_than_instruction_vm_to_assembly(VM_code):
+    global label_instruction_number
+    label_instruction_number+= 1
+    
+    return """
+        @SP
+        M=M-1
+        A=M
+        D=M
+        A=A-1
+        D=M-D
+        """ + "@LBL_GREATER_THAN" + str(label_instruction_number) + """
+        D;JGT
+
+        @SP
+        A=M-1
+        M=0
+        """+ "@LBL_END" + str(label_instruction_number) + """
+        0;JMP
+        """ + "(LBL_GREATER_THAN" + str(label_instruction_number) + ")" + """
+        
+        @SP
+        A=M-1
+        M=-1
+    """ + "(LBL_END" + str(label_instruction_number) + ")"
+
+def is_less_than(VM_code):
+    return VM_code == "lt"
+
+def less_than_instruction_vm_to_assembly(VM_code):
+    global label_instruction_number
+    label_instruction_number+= 1
+    
+    return """
+        @SP
+        M=M-1
+        A=M
+        D=M
+        A=A-1
+        D=M-D
+        """ + "@LBL_LESS_THAN" + str(label_instruction_number) + """
+        D;JLT
+
+        @SP
+        A=M-1
+        M=0
+        """+ "@LBL_END" + str(label_instruction_number) + """
+        0;JMP
+        """ + "(LBL_LESS_THAN" + str(label_instruction_number) + ")" + """
+        
+        @SP
+        A=M-1
+        M=-1
+    """ + "(LBL_END" + str(label_instruction_number) + ")"
+
+def is_and(VM_code):
+    return VM_code == "and"
+
+def and_instruction_vm_to_assembly(VM_code):
+    return """
+        @SP
+        M=M-1
+        A=M
+        D=M
+        A=A-1
+        M=D&M
+    """
+
+def is_or(VM_code):
+    return VM_code == "or"
+
+def or_instruction_vm_to_assembly(VM_code):
+    return """
+        @SP
+        M=M-1
+        A=M
+        D=M
+        A=A-1
+        M=D|M
+        
+    """
+
+def is_not(VM_code):
+    return VM_code == "not"
+
+def not_instruction_vm_to_assembly(VM_code):
+    return """
+        @SP
+        A=M-1
+        M=!M
 
     """
-     
+
+
 
