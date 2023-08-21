@@ -41,6 +41,10 @@ def convert_VM_code_to_assembly(VM_code_array):
             hack_assembly_code+= or_instruction_vm_to_assembly(x)
         elif (is_not(x)):
             hack_assembly_code+= not_instruction_vm_to_assembly(x)
+        elif (is_push_predefined_memory_segment(x)):
+            hack_assembly_code+= push_predefined_memory_segment_vm_assembly(x)
+        elif (is_pop_predefined_memory_segment(x)):
+            hack_assembly_code+= pop_predefined_memory_segment_vm_to_assembly(x)
         else:
             raise Exception("Unknown VM instruction", x)
     
@@ -239,5 +243,153 @@ def not_instruction_vm_to_assembly(VM_code):
 
     """
 
+def is_push_predefined_memory_segment(VM_code):
+    items = VM_code.split()
+    if (len(items) != 3):
+        return False
+    
+    if (items[0] != "push"):
+        return False
+    
+    return (items[1] in ["local", "argument", "this", "that"])
+
+def push_predefined_memory_segment_vm_assembly(VM_code):
+    """
+        push segment index Push the value of segment[index] onto the stack.
+    
+    """
+    items = VM_code.split()
+    memory_segment = items[1]
+    if (memory_segment == "local"):
+        return "    @" + items[2] + """
+            D=A
+            @LCL
+            A=D+M
+            D=M 
+
+            @SP
+            M=M+1
+            A=M-1
+            M=D
+        """
+    elif (memory_segment == "argument"):
+        return "    @" + items[2] + """
+            D=A
+            @ARG
+            A=D+M
+            D=M 
+
+            @SP
+            M=M+1
+            A=M-1
+            M=D
+        """
+    elif (memory_segment == "this"):
+        return "    @" + items[2] + """
+            D=A
+            @THIS
+            A=D+M
+            D=M 
+
+            @SP
+            M=M+1
+            A=M-1
+            M=D
+        """
+    elif (memory_segment == "that"):
+        return "    @" + items[2] + """
+            D=A
+            @THAT
+            A=D+M
+            D=M 
+
+            @SP
+            M=M+1
+            A=M-1
+            M=D
+        """
+    else:
+        raise Exception("unexpected memory segment vm code", VM_code)
+
+def is_pop_predefined_memory_segment(VM_code):
+    items = VM_code.split()
+    if (len(items) != 3):
+        return False
+    
+    if (items[0] != "pop"):
+        return False
+    
+    return (items[1] in ["local", "argument", "this", "that"])
+    
+def pop_predefined_memory_segment_vm_to_assembly(VM_code):
+    items = VM_code.split()
+    memory_segment = items[1]
+
+    if (memory_segment == "local"):
+        return  "    @" + items[2] + """
+            D=A
+            @LCL
+            D=D+M
+            @R11
+            M=D
+            @SP
+            M=M-1
+            A=M
+            D=M
+            @R11
+            A=M
+            M=D
+        """
+    elif (memory_segment == "argument"):
+        return  "    @" + items[2] + """
+            D=A
+            @ARG
+            D=D+M
+            @R11
+            M=D
+            @SP
+            M=M-1
+            A=M
+            D=M
+            @R11
+            A=M
+            M=D
+        """
+    elif (memory_segment == "this"):
+        return  "    @" + items[2] + """
+            D=A
+            @THIS
+            D=D+M
+            @R11
+            M=D
+            @SP
+            M=M-1
+            A=M
+            D=M
+            @R11
+            A=M
+            M=D
+        """
+    elif (memory_segment == "that"):
+        return  "    @" + items[2] + """
+            D=A
+            @THAT
+            D=D+M
+            @R11
+            M=D
+            @SP
+            M=M-1
+            A=M
+            D=M
+            @R11
+            A=M
+            M=D
+        """
+    else:
+        raise Exception("Unfamiliar Memory Segment VM_code", VM_code)
+
+
+
+    
 
 

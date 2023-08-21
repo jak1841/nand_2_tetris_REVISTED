@@ -1477,6 +1477,7 @@ class TestFunctions(unittest.TestCase):
         cmp.load_program(assem.get_binary_from_hack_assembly(assembly_code))
         cmp.do_n_operations(False, 30)
         self.assertEqual("0111010100110000", lg.get_binary_number(cmp.data_memory[256]))
+        self.assertEqual(lg.get_binary_number(assem.convert_int_to_np_array(257)), lg.get_binary_number(cmp.data_memory[0]))
 
         vm_code = [
             "push constant 10000",
@@ -1487,6 +1488,8 @@ class TestFunctions(unittest.TestCase):
         cmp.load_program(assem.get_binary_from_hack_assembly(assembly_code))
         cmp.do_n_operations(False, 30)
         self.assertEqual("0111010100110000", lg.get_binary_number(cmp.data_memory[256]))
+        self.assertEqual(lg.get_binary_number(assem.convert_int_to_np_array(257)), lg.get_binary_number(cmp.data_memory[0]))
+
 
         # Sub 
         vm_code = [
@@ -1498,6 +1501,8 @@ class TestFunctions(unittest.TestCase):
         cmp.load_program(assem.get_binary_from_hack_assembly(assembly_code))
         cmp.do_n_operations(False, 30)
         self.assertEqual("1101100011110000", lg.get_binary_number(cmp.data_memory[256]))
+        self.assertEqual(lg.get_binary_number(assem.convert_int_to_np_array(257)), lg.get_binary_number(cmp.data_memory[0]))
+
 
         vm_code = [
             "push constant 20000",
@@ -1508,6 +1513,7 @@ class TestFunctions(unittest.TestCase):
         cmp.load_program(assem.get_binary_from_hack_assembly(assembly_code))
         cmp.do_n_operations(False, 30)
         self.assertEqual("0010011100010000", lg.get_binary_number(cmp.data_memory[256]))
+        self.assertEqual(lg.get_binary_number(assem.convert_int_to_np_array(257)), lg.get_binary_number(cmp.data_memory[0]))
 
         # Neg
         vm_code = [
@@ -1518,6 +1524,7 @@ class TestFunctions(unittest.TestCase):
         cmp.load_program(assem.get_binary_from_hack_assembly(assembly_code))
         cmp.do_n_operations(False, 30)
         self.assertEqual("1100111111000111", lg.get_binary_number(cmp.data_memory[256]))
+        self.assertEqual(lg.get_binary_number(assem.convert_int_to_np_array(257)), lg.get_binary_number(cmp.data_memory[0]))
 
         # EQ
         vm_code = [
@@ -1529,6 +1536,7 @@ class TestFunctions(unittest.TestCase):
         cmp.load_program(assem.get_binary_from_hack_assembly(assembly_code))
         cmp.do_n_operations(False, 50)
         self.assertEqual("0000000000000000", lg.get_binary_number(cmp.data_memory[256]))
+        self.assertEqual(lg.get_binary_number(assem.convert_int_to_np_array(257)), lg.get_binary_number(cmp.data_memory[0]))
 
         vm_code = [
             "push constant 12345",
@@ -1539,6 +1547,7 @@ class TestFunctions(unittest.TestCase):
         cmp.load_program(assem.get_binary_from_hack_assembly(assembly_code))
         cmp.do_n_operations(False, 50)
         self.assertEqual("0000000000000000", lg.get_binary_number(cmp.data_memory[256]))
+        self.assertEqual(lg.get_binary_number(assem.convert_int_to_np_array(257)), lg.get_binary_number(cmp.data_memory[0]))
 
         vm_code = [
             "push constant 12345",
@@ -1549,6 +1558,7 @@ class TestFunctions(unittest.TestCase):
         cmp.load_program(assem.get_binary_from_hack_assembly(assembly_code))
         cmp.do_n_operations(False, 30)
         self.assertEqual("1111111111111111", lg.get_binary_number(cmp.data_memory[256]))
+        self.assertEqual(lg.get_binary_number(assem.convert_int_to_np_array(257)), lg.get_binary_number(cmp.data_memory[0]))
 
         # GT
         vm_code = [
@@ -1560,6 +1570,7 @@ class TestFunctions(unittest.TestCase):
         cmp.load_program(assem.get_binary_from_hack_assembly(assembly_code))
         cmp.do_n_operations(False, 30)
         self.assertEqual("1111111111111111", lg.get_binary_number(cmp.data_memory[256]))
+        self.assertEqual(lg.get_binary_number(assem.convert_int_to_np_array(257)), lg.get_binary_number(cmp.data_memory[0]))
 
         vm_code = [
             "push constant 8008",
@@ -1570,6 +1581,7 @@ class TestFunctions(unittest.TestCase):
         cmp.load_program(assem.get_binary_from_hack_assembly(assembly_code))
         cmp.do_n_operations(False, 50)
         self.assertEqual("0000000000000000", lg.get_binary_number(cmp.data_memory[256]))
+        self.assertEqual(lg.get_binary_number(assem.convert_int_to_np_array(257)), lg.get_binary_number(cmp.data_memory[0]))
 
         vm_code = [
             "push constant 8008",
@@ -1580,6 +1592,7 @@ class TestFunctions(unittest.TestCase):
         cmp.load_program(assem.get_binary_from_hack_assembly(assembly_code))
         cmp.do_n_operations(False, 50)
         self.assertEqual("0000000000000000", lg.get_binary_number(cmp.data_memory[256]))
+        self.assertEqual(lg.get_binary_number(assem.convert_int_to_np_array(257)), lg.get_binary_number(cmp.data_memory[0]))
 
         # LT
         vm_code = [
@@ -1591,6 +1604,7 @@ class TestFunctions(unittest.TestCase):
         cmp.load_program(assem.get_binary_from_hack_assembly(assembly_code))
         cmp.do_n_operations(False, 50)
         self.assertEqual("0000000000000000", lg.get_binary_number(cmp.data_memory[256]))
+        self.assertEqual(lg.get_binary_number(assem.convert_int_to_np_array(257)), lg.get_binary_number(cmp.data_memory[0]))
 
         vm_code = [
             "push constant 8009",
@@ -1601,6 +1615,7 @@ class TestFunctions(unittest.TestCase):
         cmp.load_program(assem.get_binary_from_hack_assembly(assembly_code))
         cmp.do_n_operations(False, 50)
         self.assertEqual("0000000000000000", lg.get_binary_number(cmp.data_memory[256]))
+        self.assertEqual(lg.get_binary_number(assem.convert_int_to_np_array(257)), lg.get_binary_number(cmp.data_memory[0]))
 
         vm_code = [
             "push constant 8007",
@@ -1611,6 +1626,7 @@ class TestFunctions(unittest.TestCase):
         cmp.load_program(assem.get_binary_from_hack_assembly(assembly_code))
         cmp.do_n_operations(False, 50)
         self.assertEqual("1111111111111111", lg.get_binary_number(cmp.data_memory[256]))
+        self.assertEqual(lg.get_binary_number(assem.convert_int_to_np_array(257)), lg.get_binary_number(cmp.data_memory[0]))
 
         # AND
         vm_code = [
@@ -1623,6 +1639,7 @@ class TestFunctions(unittest.TestCase):
         cmp.load_program(assem.get_binary_from_hack_assembly(assembly_code))
         cmp.do_n_operations(False, 100)
         self.assertEqual("0000000000000000", lg.get_binary_number(cmp.data_memory[256]))
+        self.assertEqual(lg.get_binary_number(assem.convert_int_to_np_array(257)), lg.get_binary_number(cmp.data_memory[0]))
 
         # OR 
         vm_code = [
@@ -1635,6 +1652,7 @@ class TestFunctions(unittest.TestCase):
         cmp.load_program(assem.get_binary_from_hack_assembly(assembly_code))
         cmp.do_n_operations(False, 100)
         self.assertEqual("1111111111111111", lg.get_binary_number(cmp.data_memory[256]))
+        self.assertEqual(lg.get_binary_number(assem.convert_int_to_np_array(257)), lg.get_binary_number(cmp.data_memory[0]))
 
         # NOT
         vm_code = [
@@ -1645,13 +1663,90 @@ class TestFunctions(unittest.TestCase):
         cmp.load_program(assem.get_binary_from_hack_assembly(assembly_code))
         cmp.do_n_operations(False, 100)
         self.assertEqual("1110011100011011", lg.get_binary_number(cmp.data_memory[256]))
+        self.assertEqual(lg.get_binary_number(assem.convert_int_to_np_array(257)), lg.get_binary_number(cmp.data_memory[0]))
 
-
+        # Pushing 10 items
+        vm_code = [
+            "push constant 0", 
+            "push constant 1",
+            "push constant 2",
+            "push constant 3",
+            "push constant 4",
+            "push constant 5",
+            "push constant 6",
+            "push constant 7",
+            "push constant 8",
+            "push constant 9",
+            "push constant 10",
+        ]
+        assembly_code = vm.convert_VM_code_to_assembly(vm_code)
+        cmp.load_program(assem.get_binary_from_hack_assembly(assembly_code))
+        cmp.do_n_operations(False, 100)
+        self.assertEqual(lg.get_binary_number(assem.convert_int_to_np_array(267)), lg.get_binary_number(cmp.data_memory[0]))
 
 
 
         pass
 
+    def test_vm_lcl_arg_this_that_memory_segment_push_pop(self):
+        cmp = lg.hack_computer()
+
+        
+        vm_code = [
+            "push constant 1", 
+            "pop local 0", 
+
+            "push local 0",
+            "push constant 1", 
+            "add", 
+            "pop argument 1",
+
+            "push argument 1", 
+            "push constant 2", 
+            "add", 
+            "pop this 2", 
+
+            "push this 2", 
+            "push constant 3", 
+            "add", 
+            "pop that 4",
+
+            "push that 4", 
+            "push that 4", 
+            "add", 
+            "pop that 5"
+
+
+
+
+        ]
+        # Setting the LCL, ARG, THIS, THAT to specefic values so we can actually test if push <memory segment> is working as intended
+        cmp.data_memory[1] = assem.convert_int_to_np_array(8000)    # LCL
+        cmp.data_memory[2] = assem.convert_int_to_np_array(9000)    # ARG   
+        cmp.data_memory[3] = assem.convert_int_to_np_array(10000)   # THIS
+        cmp.data_memory[4] = assem.convert_int_to_np_array(11000)   # THAT
+
+        
+
+
+
+
+
+
+        assembly_code = vm.convert_VM_code_to_assembly(vm_code)
+        cmp.load_program(assem.get_binary_from_hack_assembly(assembly_code))
+        cmp.do_n_operations(False, 200)
+        
+        self.assertEqual(self.convert_list_ints_to_16_bit_binary([1]), cmp.get_data_memory(8000, 8001))
+        self.assertEqual(self.convert_list_ints_to_16_bit_binary([0, 2]), cmp.get_data_memory(9000, 9002))
+        self.assertEqual(self.convert_list_ints_to_16_bit_binary([0, 0, 4]), cmp.get_data_memory(10000, 10003))
+
+        self.assertEqual(self.convert_list_ints_to_16_bit_binary([0, 0, 0, 0, 7, 14]), cmp.get_data_memory(11000, 11006))
+
+        self.assertEqual(lg.get_binary_number(assem.convert_int_to_np_array(256)), lg.get_binary_number(cmp.data_memory[0]))
+
+
+        pass
 
 
 if __name__ == '__main__':
