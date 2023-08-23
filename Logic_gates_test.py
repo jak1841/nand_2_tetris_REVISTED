@@ -1748,6 +1748,47 @@ class TestFunctions(unittest.TestCase):
 
         pass
 
+    def test_vm_pointer_and_temp_push_pop(self):
+        cmp = lg.hack_computer()
+
+        # Split into two the first is manipulating temp 
+        # The second is manipulating pointer
+        vm_code = [
+            "push constant 16", 
+            "pop temp 0", 
+            "push temp 0", 
+            "push temp 0",
+            "add",
+            "pop temp 1", 
+            "push temp 1", 
+            "push temp 1",
+            "add",
+            "pop temp 2", 
+            "push temp 2", 
+            "push temp 2",
+            "add",
+            "pop temp 3", 
+            "push temp 3", 
+            "push temp 3",
+            "add",
+            "pop temp 4", 
+
+            "push constant 2048", 
+            "pop pointer 0", 
+            "push constant 2049",
+            "pop pointer 1", 
+
+            
+
+
+        ]
+        assembly_code = vm.convert_VM_code_to_assembly(vm_code)
+        cmp.load_program(assem.get_binary_from_hack_assembly(assembly_code))
+        cmp.do_n_operations(False, 250)
+        
+        self.assertEqual(self.convert_list_ints_to_16_bit_binary([16, 32, 64, 128, 256]), cmp.get_data_memory(5, 10))
+        self.assertEqual(self.convert_list_ints_to_16_bit_binary([2048, 2049]), cmp.get_data_memory(3, 5))
+    
 
 if __name__ == '__main__':
     unittest.main()
