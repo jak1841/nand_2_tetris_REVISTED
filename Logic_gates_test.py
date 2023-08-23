@@ -1833,6 +1833,46 @@ class TestFunctions(unittest.TestCase):
 
         pass
 
+    def test_label_goto_ifgoto_program_flow_commands_vm(self):
+        cmp = lg.hack_computer()
+
+        # Program which adds 1, n - 1 the numbers
+        VM_CODE = [
+            "push constant 101", 
+            "pop static 0",
+
+            "push constant 1", 
+            "pop static 1",
+
+            "push constant 0",
+            "pop static 2",
+
+            "label loop", 
+
+            "push static 2", 
+            "push static 1", 
+            "add", 
+            "pop static 2",
+
+
+            "push static 1", 
+            "push constant 1",
+            "add", 
+            "pop static 1",
+
+            "push static 1", 
+            "push static 0",
+            "lt", 
+            "if-goto loop"
+        ]
+        assembly_code = vm.convert_VM_code_to_assembly(VM_CODE)
+        cmp.load_program(assem.get_binary_from_hack_assembly(assembly_code))
+
+        cmp.do_n_operations(False, 9000)
+        self.assertEqual(self.convert_list_ints_to_16_bit_binary([101, 101, 5050]), cmp.get_data_memory(16, 19))
+
+
+
 if __name__ == '__main__':
     unittest.main()
 

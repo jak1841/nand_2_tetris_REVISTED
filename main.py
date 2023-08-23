@@ -23,22 +23,40 @@ import vm as VM
 cmp = lg.hack_computer()
 
 VM_CODE = [
-    "push constant 255",
-    "pop local 0", 
-    "push local 1", 
-    "pop local 0"
+    "push constant 101", 
+    "pop static 0",
+
+    "push constant 1", 
+    "pop static 1",
+
+    "push constant 0",
+    "pop static 2",
+
+    "label loop", 
+
+    "push static 2", 
+    "push static 1", 
+    "add", 
+    "pop static 2",
+
+
+    "push static 1", 
+    "push constant 1",
+    "add", 
+    "pop static 1",
+
+    "push static 1", 
+    "push static 0",
+    "lt", 
+    "if-goto loop"
 ]
 assembly_code = VM.convert_VM_code_to_assembly(VM_CODE)
-# print(assembly_code)
 cmp.load_program(assem.get_binary_from_hack_assembly(assembly_code))
-cmp.data_memory[1] = assem.convert_int_to_np_array(8008)
 
-cmp.do_n_operations(False, 500)
-cmp.show_data_memory(0, 1)
+cmp.do_n_operations(False, 9000)
+cmp.show_data_memory(16, 20)
 
-cmp.show_data_memory(256, 260)
-cmp.show_data_memory(8008, 8010)
-cmp.show_registers()
+
 
 
 

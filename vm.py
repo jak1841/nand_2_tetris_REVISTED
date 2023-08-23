@@ -11,6 +11,7 @@ label_instruction_number = 0
 def convert_VM_code_to_assembly(VM_code_array):
     global label_instruction_number
     label_instruction_number = 0    # This will be reset and used for when we use jumps and such
+
     # Initial code the sets sp to correct value
     hack_assembly_code = """
         @256
@@ -45,6 +46,12 @@ def convert_VM_code_to_assembly(VM_code_array):
             hack_assembly_code+= push_predefined_memory_segment_vm_assembly(x)
         elif (is_pop_predefined_memory_segment(x)):
             hack_assembly_code+= pop_predefined_memory_segment_vm_to_assembly(x)
+        elif (is_label(x)):
+            hack_assembly_code+= label_vm_to_assembly(x)
+        elif (is_goto(x)):
+            hack_assembly_code+= goto_vm_to_assembly(x)
+        elif (is_if_goto(x)):
+            hack_assembly_code+= if_goto_vm_to_assembly(x)
         else:
             raise Exception("Unknown VM instruction", x)
     
@@ -309,10 +316,8 @@ def push_predefined_memory_segment_vm_assembly(VM_code):
             M=D
         """
     elif (memory_segment == "temp"):
-        return "    @" + items[2] + """
-            D=A
-            @R5
-            A=D+A
+        return "    @" + str(5 + int(items[2])) + """
+            
             D=M 
 
             @SP
@@ -321,10 +326,8 @@ def push_predefined_memory_segment_vm_assembly(VM_code):
             M=D
         """
     elif (memory_segment == "pointer"):
-        return "    @" + items[2] + """
-            D=A
-            @THIS
-            D=D+M
+        return "    @" + str(3 + int(items[2])) + """
+            D=M
 
             @SP
             M=M+1
@@ -332,12 +335,8 @@ def push_predefined_memory_segment_vm_assembly(VM_code):
             M=D
         """
     elif (memory_segment == "static"):
-        return "    @" + items[2] + """
-            D=A
-            @16
-            A=D+A
+        return "    @" + str(16 + int(items[2])) + """
             D=M 
-
             @SP
             M=M+1
             A=M-1
@@ -365,14 +364,18 @@ def pop_predefined_memory_segment_vm_to_assembly(VM_code):
             D=A
             @LCL
             D=D+M
+
             @R11
             M=D
+
             @SP
             M=M-1
             A=M
             D=M
+
             @R11
             A=M
+
             M=D
         """
     elif (memory_segment == "argument"):
@@ -421,10 +424,8 @@ def pop_predefined_memory_segment_vm_to_assembly(VM_code):
             M=D
         """
     elif (memory_segment == "temp"):
-        return  "    @" + items[2] + """
+        return  "    @" + str(5 + int(items[2])) + """
             D=A
-            @R5
-            D=D+A
             @R11
             M=D
             @SP
@@ -436,10 +437,8 @@ def pop_predefined_memory_segment_vm_to_assembly(VM_code):
             M=D
         """ 
     elif (memory_segment == "pointer"):
-        return  "    @" + items[2] + """
+        return  "    @" + str(3 + int(items[2])) + """
             D=A
-            @THIS
-            D=D+A
 
             @R11
             M=D
@@ -454,10 +453,9 @@ def pop_predefined_memory_segment_vm_to_assembly(VM_code):
             M=D
         """ 
     elif (memory_segment == "static"):
-        return  "    @" + items[2] + """
+        return  "    @" + str(16 + int(items[2])) + """
             D=A
-            @16
-            D=D+A
+            
             @R11
             M=D
             @SP
@@ -470,6 +468,30 @@ def pop_predefined_memory_segment_vm_to_assembly(VM_code):
         """
     else:
         raise Exception("Unfamiliar Memory Segment VM_code", VM_code)
+
+def is_label(VM_code):
+    return VM_code[:5] == "label"
+
+def label_vm_to_assembly(VM_code):
+    return "(" + VM_code[6:] + ")\n" 
+
+def is_goto(VM_code):
+    return VM_code[:4] == "goto"
+
+def goto_vm_to_assembly(VM_code):
+    return "    @" + VM_code[:5] + """
+        0;JMP
+    """
+
+def is_if_goto(VM_code):
+    return VM_code[:7] == "if-goto"
+
+def if_goto_vm_to_assembly(VM_code):
+    return  """
+        @SP
+        A=M-1
+        D=M
+    """ + "    @" + VM_code[8:] + "\n    D;JNE"
 
 
 
