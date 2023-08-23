@@ -251,7 +251,7 @@ def is_push_predefined_memory_segment(VM_code):
     if (items[0] != "push"):
         return False
     
-    return (items[1] in ["local", "argument", "this", "that", "temp", "pointer"])
+    return (items[1] in ["local", "argument", "this", "that", "temp", "pointer", "static"])
 
 def push_predefined_memory_segment_vm_assembly(VM_code):
     """
@@ -331,7 +331,18 @@ def push_predefined_memory_segment_vm_assembly(VM_code):
             A=M-1
             M=D
         """
+    elif (memory_segment == "static"):
+        return "    @" + items[2] + """
+            D=A
+            @16
+            A=D+A
+            D=M 
 
+            @SP
+            M=M+1
+            A=M-1
+            M=D
+        """
     else:
         raise Exception("unexpected memory segment vm code", VM_code)
 
@@ -343,7 +354,7 @@ def is_pop_predefined_memory_segment(VM_code):
     if (items[0] != "pop"):
         return False
     
-    return (items[1] in ["local", "argument", "this", "that", "temp", "pointer"])
+    return (items[1] in ["local", "argument", "this", "that", "temp", "pointer", "static"])
     
 def pop_predefined_memory_segment_vm_to_assembly(VM_code):
     items = VM_code.split()
@@ -442,6 +453,21 @@ def pop_predefined_memory_segment_vm_to_assembly(VM_code):
             A=M
             M=D
         """ 
+    elif (memory_segment == "static"):
+        return  "    @" + items[2] + """
+            D=A
+            @16
+            D=D+A
+            @R11
+            M=D
+            @SP
+            M=M-1
+            A=M
+            D=M
+            @R11
+            A=M
+            M=D
+        """
     else:
         raise Exception("Unfamiliar Memory Segment VM_code", VM_code)
 

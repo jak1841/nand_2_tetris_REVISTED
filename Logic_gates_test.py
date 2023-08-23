@@ -1790,6 +1790,49 @@ class TestFunctions(unittest.TestCase):
         self.assertEqual(self.convert_list_ints_to_16_bit_binary([2048, 2049]), cmp.get_data_memory(3, 5))
     
 
+    def test_vm_static_push_pop(self):
+        cmp = lg.hack_computer()
+
+        vm_code = [
+            "push constant 15", 
+            "pop static 0", 
+            "push static 0", 
+            "push static 0", 
+            "add", 
+
+            "pop static 1", 
+            "push static 1", 
+            "push static 1", 
+            "add", 
+
+            "pop static 2", 
+            "push static 2", 
+            "push static 2", 
+            "add", 
+
+            "pop static 3", 
+            "push static 3", 
+            "push static 3", 
+            "add", 
+
+            "pop static 10", 
+            "push static 10", 
+            "push static 10", 
+            "add",
+
+            "pop static 9" 
+        ]
+
+
+        assembly_code = vm.convert_VM_code_to_assembly(vm_code)
+        cmp.load_program(assem.get_binary_from_hack_assembly(assembly_code))
+        cmp.do_n_operations(False, 500)
+
+        self.assertEqual(self.convert_list_ints_to_16_bit_binary([15, 30, 60, 120, 0, 0, 0, 0, 0, 480, 240]), cmp.get_data_memory(16, 27))
+
+
+        pass
+
 if __name__ == '__main__':
     unittest.main()
 
