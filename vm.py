@@ -12,6 +12,8 @@ def convert_VM_code_to_assembly(VM_code_array):
     global label_instruction_number
     label_instruction_number = 0    # This will be reset and used for when we use jumps and such
 
+
+
     # Initial code the sets sp to correct value
     hack_assembly_code = """
         @256
@@ -52,6 +54,12 @@ def convert_VM_code_to_assembly(VM_code_array):
             hack_assembly_code+= goto_vm_to_assembly(x)
         elif (is_if_goto(x)):
             hack_assembly_code+= if_goto_vm_to_assembly(x)
+        elif (is_call_function(x)):
+            hack_assembly_code += call_function_vm_to_assembly(x)
+        elif (is_function(x)):
+            hack_assembly_code+= function_vm_to_assembly(x)
+        elif (is_return(x)):
+            hack_assembly_code+= return_vm_to_assembly(x)
         else:
             raise Exception("Unknown VM instruction", x)
     
@@ -493,6 +501,173 @@ def if_goto_vm_to_assembly(VM_code):
         D=M
     """ + "    @" + VM_code[8:] + "\n    D;JNE"
 
+def is_call_function(VM_code):
+    return VM_code[:4] == "call"
+
+def call_function_vm_to_assembly(VM_code):
+    global label_instruction_number
+    label_instruction_number+= 1
+
+    call, function_name, number_arguments = VM_code.split()
+
+    return "\n".join([
+        # push return address
+        "@" + function_name + str(label_instruction_number), 
+        "D=A",
+        "@SP",
+        "M=M+1",
+        "A=M-1",
+        "M=D",
+
+        # push LCL
+        "@LCL", 
+        "D=M",
+        "@SP",
+        "M=M+1",
+        "A=M-1",
+        "M=D", 
+
+        # push arg
+        "@ARG", 
+        "D=M",
+        "@SP",
+        "M=M+1",
+        "A=M-1",
+        "M=D", 
+
+        # Push This
+        "@THIS", 
+        "D=M",
+        "@SP",
+        "M=M+1",
+        "A=M-1",
+        "M=D",
+
+        # Push that 
+        "@THAT", 
+        "D=M",
+        "@SP",
+        "M=M+1",
+        "A=M-1",
+        "M=D",
+
+        # ARG = SP-n-5
+        "@" + str(int(number_arguments) + 5), 
+        "D=A", 
+        "@SP", 
+        "D=A-D", 
+        "@ARG", 
+        "M=D", 
+
+        # LCL = SP
+        "@SP", 
+        "D=A", 
+        "@LCL", 
+        "M=D", 
+
+        # goto f
+        "@" + function_name,
+        "0;JMP",
+
+        # Return address
+        "(" + function_name + str(label_instruction_number) + ")"
+    ])
+
+    pass
+
+def is_function(VM_code):
+    return VM_code[:8] == ""
+
+def function_vm_to_assembly(VM_code):
+    fun, function_name, num_local_variables = VM_code.split()
+
+    return "\n".join([
+        "(" + function_name + ")", 
+        "@" + num_local_variables, 
+        "D=A",
+
+        "(" + function_name + "_loop_label)",
+        "@" + function_name + "END_label",
+        "D;JLE",
+
+        # Push constant 0
+        "@SP",
+        "M=M+1",
+        "A=M-1",
+        "M=0", 
+        "D=D-1",
+
+        "(" + function_name + "END_label" + ")"
+
+
+
+    ])
+
+
+def is_return(VM_code):
+    return VM_code == "return"
+
+def return_vm_to_assembly(VM_code):
+    
+    # *ARG = pop()
+    return pop_predefined_memory_segment_vm_to_assembly("pop argument 0") + "\n".join([
+        # SP = ARG + 1
+        "@ARG", 
+        "D=M+1"
+        "@SP", 
+        "M=D",
+
+        # THAT = *(FRAME - 1)
+        "@LCL", 
+        "A=M-1", 
+        "D=M",
+        "@THAT", 
+        "M=D", 
+
+        # THIS = *(FRAME - 2)
+        "@2", 
+        "D=A", 
+        "@LCL", 
+        "A=M-D", 
+        "D=M",
+        "@THIS", 
+        "M=D", 
+
+        # ARG = *(FRAME - 3)
+        "@3", 
+        "D=A", 
+        "@LCL", 
+        "A=M-D", 
+        "D=M",
+        "@ARG", 
+        "M=D", 
+
+
+        # RET = *(FRAME - 5)
+        "@5", 
+        "D=A", 
+        "@LCL", 
+        "A=M-D", 
+        "D=M",
+        "@7", 
+        "M=D", 
+
+        # LCL = *(FRAME - 4)
+
+        "@4", 
+        "D=A", 
+        "@LCL", 
+        "A=M-D", 
+        "D=M",
+        "@LCL", 
+        "M=D", 
+
+        # GOTO RET
+        "@7", 
+        "A=M", 
+        "0;JMP"
+    ])
+    
 
 
     
