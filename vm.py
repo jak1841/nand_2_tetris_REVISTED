@@ -25,41 +25,41 @@ def convert_VM_code_to_assembly(VM_code_array):
     
     for x in VM_code_array:
         if (is_push_constant(x)):
-            hack_assembly_code+= push_constant_vm_to_assembly(x)
+            hack_assembly_code+= push_constant_vm_to_assembly(x) + '\n'
         elif (is_add(x)):
-            hack_assembly_code += add_instruction_vm_to_assembly(x)
+            hack_assembly_code += add_instruction_vm_to_assembly(x) + '\n'
         elif (is_subtract(x)):
-            hack_assembly_code+= subtract_instruction_vm_to_assembly(x)
+            hack_assembly_code+= subtract_instruction_vm_to_assembly(x) + '\n'
         elif (is_neg(x)):
-            hack_assembly_code+= negative_instruction_vm_to_assembly(x)
+            hack_assembly_code+= negative_instruction_vm_to_assembly(x)+ '\n'
         elif (is_equal(x)):
-            hack_assembly_code+= equal_instruction_vm_to_assembly(x)
+            hack_assembly_code+= equal_instruction_vm_to_assembly(x)+ '\n'
         elif (is_greater_than(x)):
-            hack_assembly_code+= greater_than_instruction_vm_to_assembly(x)
+            hack_assembly_code+= greater_than_instruction_vm_to_assembly(x)+ '\n'
         elif (is_less_than(x)):
-            hack_assembly_code+= less_than_instruction_vm_to_assembly(x)
+            hack_assembly_code+= less_than_instruction_vm_to_assembly(x)+ '\n'
         elif (is_and(x)):
-            hack_assembly_code+= and_instruction_vm_to_assembly(x)
+            hack_assembly_code+= and_instruction_vm_to_assembly(x)+ '\n'
         elif (is_or(x)):
-            hack_assembly_code+= or_instruction_vm_to_assembly(x)
+            hack_assembly_code+= or_instruction_vm_to_assembly(x)+ '\n'
         elif (is_not(x)):
-            hack_assembly_code+= not_instruction_vm_to_assembly(x)
+            hack_assembly_code+= not_instruction_vm_to_assembly(x)+ '\n'
         elif (is_push_predefined_memory_segment(x)):
-            hack_assembly_code+= push_predefined_memory_segment_vm_assembly(x)
+            hack_assembly_code+= push_predefined_memory_segment_vm_assembly(x)+ '\n'
         elif (is_pop_predefined_memory_segment(x)):
-            hack_assembly_code+= pop_predefined_memory_segment_vm_to_assembly(x)
+            hack_assembly_code+= pop_predefined_memory_segment_vm_to_assembly(x)+ '\n'
         elif (is_label(x)):
-            hack_assembly_code+= label_vm_to_assembly(x)
+            hack_assembly_code+= label_vm_to_assembly(x)+ '\n'
         elif (is_goto(x)):
-            hack_assembly_code+= goto_vm_to_assembly(x)
+            hack_assembly_code+= goto_vm_to_assembly(x)+ '\n'
         elif (is_if_goto(x)):
-            hack_assembly_code+= if_goto_vm_to_assembly(x)
+            hack_assembly_code+= if_goto_vm_to_assembly(x)+ '\n'
         elif (is_call_function(x)):
-            hack_assembly_code += call_function_vm_to_assembly(x)
+            hack_assembly_code += call_function_vm_to_assembly(x)+ '\n'
         elif (is_function(x)):
-            hack_assembly_code+= function_vm_to_assembly(x)
+            hack_assembly_code+= function_vm_to_assembly(x)+ '\n'
         elif (is_return(x)):
-            hack_assembly_code+= return_vm_to_assembly(x)
+            hack_assembly_code+= return_vm_to_assembly(x)+ '\n'
         else:
             raise Exception("Unknown VM instruction", x)
     
@@ -286,6 +286,7 @@ def push_predefined_memory_segment_vm_assembly(VM_code):
             M=M+1
             A=M-1
             M=D
+
         """
     elif (memory_segment == "argument"):
         return "    @" + items[2] + """
@@ -385,6 +386,7 @@ def pop_predefined_memory_segment_vm_to_assembly(VM_code):
             A=M
 
             M=D
+
         """
     elif (memory_segment == "argument"):
         return  "    @" + items[2] + """
@@ -400,6 +402,7 @@ def pop_predefined_memory_segment_vm_to_assembly(VM_code):
             @R11
             A=M
             M=D
+
         """
     elif (memory_segment == "this"):
         return  "    @" + items[2] + """
@@ -415,6 +418,7 @@ def pop_predefined_memory_segment_vm_to_assembly(VM_code):
             @R11
             A=M
             M=D
+
         """
     elif (memory_segment == "that"):
         return  "    @" + items[2] + """
@@ -430,6 +434,7 @@ def pop_predefined_memory_segment_vm_to_assembly(VM_code):
             @R11
             A=M
             M=D
+
         """
     elif (memory_segment == "temp"):
         return  "    @" + str(5 + int(items[2])) + """
@@ -443,6 +448,7 @@ def pop_predefined_memory_segment_vm_to_assembly(VM_code):
             @R11
             A=M
             M=D
+
         """ 
     elif (memory_segment == "pointer"):
         return  "    @" + str(3 + int(items[2])) + """
@@ -459,6 +465,7 @@ def pop_predefined_memory_segment_vm_to_assembly(VM_code):
             @R11
             A=M
             M=D
+
         """ 
     elif (memory_segment == "static"):
         return  "    @" + str(16 + int(items[2])) + """
@@ -473,6 +480,7 @@ def pop_predefined_memory_segment_vm_to_assembly(VM_code):
             @R11
             A=M
             M=D
+
         """
     else:
         raise Exception("Unfamiliar Memory Segment VM_code", VM_code)
@@ -487,8 +495,9 @@ def is_goto(VM_code):
     return VM_code[:4] == "goto"
 
 def goto_vm_to_assembly(VM_code):
-    return "    @" + VM_code[:5] + """
+    return "    @" + VM_code[5:] + """
         0;JMP
+
     """
 
 def is_if_goto(VM_code):
@@ -499,7 +508,7 @@ def if_goto_vm_to_assembly(VM_code):
         @SP
         A=M-1
         D=M
-    """ + "    @" + VM_code[8:] + "\n    D;JNE"
+    """ + "    @" + VM_code[8:] + "\n    D;JNE "
 
 def is_call_function(VM_code):
     return VM_code[:4] == "call"
@@ -555,13 +564,13 @@ def call_function_vm_to_assembly(VM_code):
         "@" + str(int(number_arguments) + 5), 
         "D=A", 
         "@SP", 
-        "D=A-D", 
+        "D=M-D", 
         "@ARG", 
         "M=D", 
 
         # LCL = SP
         "@SP", 
-        "D=A", 
+        "D=M", 
         "@LCL", 
         "M=D", 
 
@@ -576,7 +585,7 @@ def call_function_vm_to_assembly(VM_code):
     pass
 
 def is_function(VM_code):
-    return VM_code[:8] == ""
+    return VM_code[:8] == "function"
 
 def function_vm_to_assembly(VM_code):
     fun, function_name, num_local_variables = VM_code.split()
@@ -597,6 +606,9 @@ def function_vm_to_assembly(VM_code):
         "M=0", 
         "D=D-1",
 
+        "@" + function_name + "_loop_label",
+        "0;JMP",
+
         "(" + function_name + "END_label" + ")"
 
 
@@ -613,7 +625,7 @@ def return_vm_to_assembly(VM_code):
     return pop_predefined_memory_segment_vm_to_assembly("pop argument 0") + "\n".join([
         # SP = ARG + 1
         "@ARG", 
-        "D=M+1"
+        "D=M+1",
         "@SP", 
         "M=D",
 
