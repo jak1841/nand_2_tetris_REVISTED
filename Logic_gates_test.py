@@ -1926,6 +1926,66 @@ class TestFunctions(unittest.TestCase):
         self.assertEqual(self.convert_list_ints_to_16_bit_binary([31250]), cmp.get_data_memory(256, 257))
         self.assertEqual(self.convert_list_ints_to_16_bit_binary([257]), cmp.get_data_memory(0, 1))
 
+        VM_CODE = [
+            "push constant 4",
+            "push constant 4",
+            "call pow 2",
+            
+
+
+            "label bruh", 
+            "goto bruh",
+
+            "function mult 2", 
+            "push constant 0",
+            "pop local 0", 
+            "push argument 1", 
+            "pop local 1", 
+            "label loop", 
+            "push constant 0", 
+            "push local 1", 
+            "eq", 
+            "if-goto end", 
+            "push local 0", 
+            "push argument 0", 
+            "add", 
+            "pop local 0", 
+            "push local 1", 
+            "push constant 1", 
+            "sub", 
+            "pop local 1", 
+            "goto loop", 
+            "label end", 
+            "push local 0",
+            "return",
+
+            "function pow 2", 
+            "push argument 0", 
+            "push argument 1", 
+            "call mult 2",
+            "push argument 1",
+            "call mult 2",
+            "push argument 1",
+            "call mult 2",
+            "push argument 1",
+            "call mult 2",
+            "push argument 1",
+            "call mult 2",
+            "push argument 1", 
+            "call mult 2",
+
+
+            "return",
+
+            
+        ]
+
+        assembly_code = vm.convert_VM_code_to_assembly(VM_CODE)
+        cmp.load_program(assem.get_binary_from_hack_assembly(assembly_code))
+        cmp.do_n_operations(False, 6000)
+        self.assertEqual(self.convert_list_ints_to_16_bit_binary([16384]), cmp.get_data_memory(256, 257))
+        self.assertEqual(self.convert_list_ints_to_16_bit_binary([257]), cmp.get_data_memory(0, 1))
+
 
 
 if __name__ == '__main__':
