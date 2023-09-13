@@ -86,65 +86,402 @@ def handle_string_token(string, curr_index):
 
 
 
+xml_string = ""
+
+# Given a list of tokens an a value, assert that value matches the token
+def match_token_value(tokens, value):
+    type_token, value_token = tokens.pop(0)
+
+    print("<" + type_token + ">", value_token, "</" + type_token + ">")
+
+    if (value != value_token):
+        raise Exception("Expected", value, "but got", value_token, "Tokenlist outputed:", tokens)
+
+def match_token_type(tokens, typer):
+    type_token, value_token = tokens.pop(0)
+
+    print("<" + type_token + ">", value_token, "</" + type_token + ">")
+
+    if (typer != type_token):
+        raise Exception("Expected", typer, "but got", type_token, "Tokenlist outputed:", tokens)
+
+def match_class(tokens):
+    print("<class>")
+    match_token_value(tokens, "class")
+    match_class_names(tokens)
+    match_token_value(tokens, "{")
+
+    while (tokens[0][1] in ["static", "field"]):
+        match_classVarDec(tokens)
+    
+    while (tokens[0][1] in ["constructor", "function", "method"]):
+        match_subroutine_dec(tokens)
+
+    match_token_value(tokens, "}")
+
+    print("</class>")
 
 
 
+def match_varName(tokens):
+    match_token_type(tokens, "identifier")
 
-jack_code = """
+def match_subroutine_name(tokens):
+    match_token_type(tokens, "identifier")
 
-    if(x < 153)
-        {let city="Paris";}
+def match_class_names(tokens):
+    match_token_type(tokens, "identifier")
 
+def match_type(tokens):
+    type_token, value_token = tokens[0]
+    if (value_token not in ["int", "char", "boolean"] and type_token != "identifier"):
+        raise Exception("Expected type but got", type_token, value_token, tokens)
+    
+    match_token_value(tokens, value_token)
+
+    
+    
+    
+
+
+
+def match_varDec(tokens):
+    print("<varDec>")
+    match_token_value(tokens, "var")
+    match_type(tokens)
+    match_varName(tokens)
+
+    while (tokens[0][1] == ","):
+        match_token_value(tokens, ",")
+        match_varName(tokens)
+    
+    match_token_value(tokens, ";")
+    print("</varDec>")
+
+def is_classVarDec(tokens):
+    return (tokens[0][1] in ["static", "field"])
+
+def match_classVarDec(tokens):
+    print("<classVarDec>")
+    type_token, value_token = tokens[0]
+    if (value_token not in ["static", "field"]):
+        raise Exception("Expected static or field but got", value_token)
+    match_token_value(tokens, value_token)
+
+    match_type(tokens)
+    match_varName(tokens)
+
+    while (tokens[0][1] == ","):
+        match_token_value(tokens, ",")
+        match_varName(tokens)
+    
+    match_token_value(tokens, ";")
+    print("</classVarDec>")
+
+
+def match_subroutine_dec(tokens):
+    print("<subroutineDec>")
+    type_token, value_token = tokens[0]
+
+    if (value_token not in ["constructor", "function", "method"]):
+        raise Exception("Expected constructor, function, or method but got", value_token, tokens)
+    
+    match_token_value(tokens, value_token)
+    
+    if (tokens[0][1] == "void"):
+        match_token_value(tokens, tokens[0][1])
+    else:
+        match_type(tokens)
+    
+    match_subroutine_name(tokens)
+    match_token_value(tokens, "(")
+    match_parameter_list(tokens)
+    match_token_value(tokens, ")")
+    match_subroutine_body(tokens)
+
+    print("</subroutineDec>")
+
+
+
+def match_parameter_list(tokens):
+    print("<parameterlist>")
+    if (tokens[0][1] == ")"):
+        print("</parameterlist>")
+        return
+
+    match_type(tokens)
+    match_varName(tokens)
+
+    while (tokens[0][1] == ","):
+        match_token_value(tokens, ",")
+        match_type(tokens)
+        match_varName(tokens)
+    
+    
+
+
+    print("</parameterlist>")
+
+def match_subroutine_body(tokens):
+    print("<subroutinebody>")
+    match_token_value(tokens, "{")
+
+    while (tokens[0][1] == "var"):
+        match_varDec(tokens)
+
+
+    match_statements(tokens)
+    match_token_value(tokens, "}")
+    print("</subroutinebody>")
 
 
 """
 
+    Statements
+
+"""
 
 
-print(tokenize_jack_code(jack_code))
+def match_statements(tokens):
+    print("<statements>")
+    while (is_statement(tokens)):
+        match_statement(tokens)
+
+    print("</statements>")
+
+
+def is_statement(tokens):
+    return (tokens[0][1] in ["let", "if", "while", "do", "return"])
+
+def match_statement(tokens):
+    token_value = tokens[0][1]
+
+    if (token_value == "let"):
+        match_let_statement(tokens)
+    elif (token_value == "if"):
+        match_if_statement(tokens)
+    elif (token_value == "while"):
+        match_while_statement(tokens)
+    elif (token_value == "do"):
+        match_do_statement(tokens)
+    elif (token_value == "return"):
+        match_return_statement(tokens)
+    else:
+        raise Exception("Unknown statement", tokens)
+
+
+def match_let_statement(tokens):
+    print("<let statement>")
+    match_token_value(tokens, "let")
+    match_varName(tokens)
+
+    if (tokens[0][1] == "["):
+        match_token_value(tokens, "[")
+        match_expression(tokens)
+        match_token_value(tokens, "]")
+
+    while (tokens[0][1] == "["):
+        match_token_value(tokens, "[")
+        match_expression(tokens)
+        match_token_value(tokens, "]")
+    
+    match_token_value(tokens, "=")
+    match_expression(tokens)
+    match_token_value(tokens, ";")
+    print("</let statement>")
+
+def match_if_statement(tokens):
+    print("<if statement>")
+    match_token_value(tokens, "if")
+    match_token_value(tokens, "(")
+    match_expression(tokens)
+    match_token_value(tokens, ")")
+
+    match_token_value(tokens, "{")
+    match_statements(tokens)
+    match_token_value(tokens, "}")
+
+    if (tokens[0][1] == "else"):
+        match_token_value(tokens, "else")
+        match_token_value(tokens, "{")
+        match_statements(tokens)
+        match_token_value(tokens, "}")
+
+    print("</if statement>")
+
+
+def match_while_statement(tokens):
+    print("<while statement>")
+    match_token_value(tokens, "while")
+    match_token_value(tokens, "(")  
+    match_expression(tokens)
+    match_token_value(tokens, ")") 
+    match_token_value(tokens, "{")
+    match_statements(tokens)
+    match_token_value(tokens, "}") 
+    print("</while statement>")
+
+def match_do_statement(tokens):
+    print("<do statement>")
+    match_token_value(tokens, "do")
+    match_subroutine_call(tokens)
+    match_token_value(tokens, ";")
+    print("</do statement>")
+
+def match_return_statement(tokens):
+    print("<return statement>")
+    match_token_value(tokens, "return")
+    if (tokens[0][1] != ";"):
+        match_expression(tokens)
+    match_token_value(tokens, ";")
+    print("</return statement>")
+
+"""
+
+    Expressions
+
+"""
+
+def match_keywordConstant(tokens):
+    if (tokens[0][1] not in ["true", "false", "null", "this"]):
+        raise Exception("Expected keyword constant but got", tokens[0][1], tokens)
+    match_token_value(tokens, tokens[0][1])
+
+def match_unaryOp(tokens):
+    match_token_value(tokens, "-")
+
+def match_op(tokens):
+    if (tokens[0][1] not in "+-*/&|<>="):
+        raise Exception("Expected op but got", tokens[0][1], tokens)
+    match_token_value(tokens, tokens[0][1])
+
+def match_term(tokens):
+    print("<term>")
+    type_token, value_token = tokens[0]
+    # Integer constant 
+    if (type_token == "integer"):
+        match_token_type(tokens, "integer")
+    # String constant
+    elif (type_token == "string"):
+        match_token_type(tokens, "string")
+    # Keyword constant
+    elif (value_token in ["true", "false", "null", "this"]):
+        match_keywordConstant(tokens)
+    # VarName[Expression]
+    elif (type_token == "identifier" and tokens[1][1] == "["):
+        match_varName(tokens)
+        match_token_value(tokens, "[")
+        match_expression(tokens)
+        match_token_value(tokens, "]")
+    # Subroutine call
+    elif (type_token == "identifier" and tokens[1][1] == "("):
+        match_subroutine_call(tokens)
+    # VarName
+    elif (type_token == "identifier"):
+        match_varName(tokens)
+    # (expression)
+    elif (value_token == "("):
+        match_token_value(tokens, "(")
+        match_expression(tokens)
+        match_token_value(tokens, ")")
+
+    # unaryOp term
+    elif (value_token == "-"):
+        match_token_value(tokens, "-")
+        match_term(tokens)
+    else:
+        raise Exception("unknown term", tokens)
+    
+    print("</term>")
+
+def match_expression(tokens):
+    print("<expression>")
+    match_term(tokens)
+
+    while (tokens[0][1] in "+-*/&|<>="):
+        match_op(tokens)
+        match_term(tokens)
+
+    print("</expression>")
+
+def match_subroutine_call(tokens):
+    print("<subroutine call>")
+    if (tokens[1][1] == "("):
+        match_subroutine_name(tokens)
+        match_token_value(tokens, "(")
+        match_expressionList(tokens)
+        match_token_value(tokens, ")")
+    else:
+        match_varName(tokens)
+        match_token_value(tokens, ".")
+        match_subroutine_name(tokens)
+        match_token_value(tokens, "(")
+        match_expressionList(tokens)
+        match_token_value(tokens, ")")
+    
+    print("</subroutine call>")
 
 
 
 
+def match_expressionList(tokens):
+    print("<expressionList>")
+    if (tokens[0][1] == ")"):
+        print("</expressionList>")
+        return 
+    match_expression(tokens)
+
+    while (tokens[0][1] == ","):
+        match_token_value(tokens, ",")
+        match_expression(tokens)
+    
+    print("</expressionList>")
 
 
-def is_integer_constant(cur_token):
-    return cur_token.isdigit()
-
-def xml_integer_constant(cur_token):
-    print("<integerConstant>", cur_token ,"</integerConstant>")
+def generate_vm_code(jack_code):
+    tokens = tokenize_jack_code(jack_code)
+    match_class(tokens)
 
 
-def is_string_constant(cur_token):
-    return cur_token[0] == "\"" and cur_token[-1] == "\""
+jack_code = """
+    class Bar {
+        method Fraction foo(int y) {
+            var int temp;
+            let temp = (xxx + 12)*-63;
+        }
+    }
+"""
 
-def xml_string_constant(cur_token):
-    print("<stringConstant>", cur_token, "</stringConstant>")
+ExpressionlessSquare = """
+class square {
+    method void incSize() {
+        if (x) {
+            do erase();
+            let size = size;
+            do draw();
 
-def is_identifier(cur_token):
-    return cur_token[0] not in "1234567890"
+        }
+        return;
+    }
+}
+"""
 
-def xml_identifier(cur_token):
-    print("<identifier>", cur_token ,"</identifier>")
+Square = """
+class square {
+    method void incSize() {
+        if (((y + size) < 254) & ((x + size) < 510 )) {
+            do erase();
+            let size = size + 2;
+            do draw();
+        }
 
-def is_keyword_constant(cur_token):
-    return cur_token in ["true", "false", "null", "this"]
+        return;
+    }
+}
+"""
 
-def xml_keyword_constant(cur_token):
-    print("<KeywordConstant>", cur_token ,"</KeywordConstant>")
-
-def is_op(cur_token):
-    return cur_token in "+-*/&|<>="
-
-def xml_op(cur_token):
-    print("<op>", cur_token ,"<op>")
-
-def is_symbol(cur_token):
-    return (cur_token in "()[]}{.,;+-*/&|<>=-")
-
-def xml_symbol(cur_token):
-    print("<symbol>", cur_token, "</symbol>")
-
-def is_keyword(cur_token):
-    return cur_token in ["class", "constructor", "function", ]
-
+generate_vm_code(Square)
+print("")
+generate_vm_code(ExpressionlessSquare)
+print("")
+generate_vm_code(jack_code)
