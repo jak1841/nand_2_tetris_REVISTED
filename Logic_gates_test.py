@@ -1987,6 +1987,16 @@ class TestFunctions(unittest.TestCase):
         self.assertEqual(self.convert_list_ints_to_16_bit_binary([257]), cmp.get_data_memory(0, 1))
 
 
+    """
+    
+        Jack coding tests
+
+    """
+    def test_setting_memory(self):
+        pass
+
+
+
 
 if __name__ == '__main__':
     unittest.main()

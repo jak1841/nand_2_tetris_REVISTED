@@ -1,7 +1,14 @@
+from symbol_table import symboltable as st
 
 # Given a string and the current index position inside that string 
 # will advance the current position until we have reached a Non whitespace character
 # returns that value
+
+"""
+
+    Tokenizers functions
+
+"""
 def ignore_whitespace(string, curr_index):
     while (curr_index < len(string) and string[curr_index].isspace()):
         curr_index+=1
@@ -54,10 +61,15 @@ def handle_identifier_tokenizer(string, curr_index):
     return (("identifier", curr_token), curr_index)
 
 def is_integer_tokenizer(string, curr_index):
-    return string[curr_index] in "123456789"
+    return string[curr_index] in "0123456789"
 
 def handle_integer_tokenizer(string, curr_index):
     curr_token = ""
+    if (string[curr_index] == "0"):
+        curr_token += string[curr_index]
+        curr_index+= 1
+        return (("integer", curr_token), curr_index)
+
     while (curr_index < len(string) and string[curr_index] in "0123456789"):
         curr_token += string[curr_index]
         curr_index+= 1
@@ -88,6 +100,56 @@ def handle_string_token(string, curr_index):
 
 xml_string = ""
 
+
+"""
+
+    Below is where the vm writer code will be located
+
+
+"""
+
+def vm_writer_op(op):
+    print(op)
+    if (op == "+"):
+        vm_code.append("add")
+    elif (op == "-"):
+        vm_code.append("sub")
+    elif (op == "&"):
+        vm_code.append("and")
+    elif (op == "|"):
+        vm_code.append("or")
+    elif (op == "<"):
+        vm_code.append("lt")
+    elif (op == ">"):
+        vm_code.append("gt")
+    elif (op == "="):
+        vm_code.append("eq")
+    else:
+        raise Exception("unknown op", op)
+    
+def vm_writer_keyword_constant(keyword):
+    if (keyword == "true"):
+        vm_code.append("push constant 1")
+        vm_code.append("neg")
+    elif (keyword == "false" or keyword == "null"):
+        vm_code.append("push constant 0")
+    elif (keyword == "this"):
+        vm_code.append("push this 0")
+    else:
+        raise Exception("unknown keyword", keyword)
+    
+
+
+
+
+"""
+    Syntax analyzer functions below
+
+"""
+
+vm_code = []
+symboltable = st()
+
 # Given a list of tokens an a value, assert that value matches the token
 def match_token_value(tokens, value):
     type_token, value_token = tokens.pop(0)
@@ -96,6 +158,8 @@ def match_token_value(tokens, value):
 
     if (value != value_token):
         raise Exception("Expected", value, "but got", value_token, "Tokenlist outputed:", tokens)
+    
+    return value_token
 
 def match_token_type(tokens, typer):
     type_token, value_token = tokens.pop(0)
@@ -104,6 +168,9 @@ def match_token_type(tokens, typer):
 
     if (typer != type_token):
         raise Exception("Expected", typer, "but got", type_token, "Tokenlist outputed:", tokens)
+    
+    return value_token
+
 
 def match_class(tokens):
     print("<class>")
@@ -124,7 +191,7 @@ def match_class(tokens):
 
 
 def match_varName(tokens):
-    match_token_type(tokens, "identifier")
+    return match_token_type(tokens, "identifier")
 
 def match_subroutine_name(tokens):
     match_token_type(tokens, "identifier")
@@ -137,7 +204,7 @@ def match_type(tokens):
     if (value_token not in ["int", "char", "boolean"] and type_token != "identifier"):
         raise Exception("Expected type but got", type_token, value_token, tokens)
     
-    match_token_value(tokens, value_token)
+    return match_token_value(tokens, value_token)
 
     
     
@@ -166,14 +233,17 @@ def match_classVarDec(tokens):
     type_token, value_token = tokens[0]
     if (value_token not in ["static", "field"]):
         raise Exception("Expected static or field but got", value_token)
-    match_token_value(tokens, value_token)
+    
 
-    match_type(tokens)
-    match_varName(tokens)
+    kind = match_token_value(tokens, value_token)
+    type_ = match_type(tokens)
+    name = match_varName(tokens)
+    symboltable.define(name, type_, kind)
 
     while (tokens[0][1] == ","):
         match_token_value(tokens, ",")
-        match_varName(tokens)
+        name = match_varName(tokens)
+        symboltable.define(name, type_, kind)
     
     match_token_value(tokens, ";")
     print("</classVarDec>")
@@ -273,20 +343,29 @@ def match_statement(tokens):
 def match_let_statement(tokens):
     print("<let statement>")
     match_token_value(tokens, "let")
-    match_varName(tokens)
+    varname = match_varName(tokens)
 
     if (tokens[0][1] == "["):
+        vm_code.append("push " + symboltable.kind_of(varname) + " " + str(symboltable.index_of(varname)))
+
         match_token_value(tokens, "[")
         match_expression(tokens)
+        vm_code.append("add")
+        vm_code.append("pop pointer 1")
         match_token_value(tokens, "]")
 
-    while (tokens[0][1] == "["):
-        match_token_value(tokens, "[")
-        match_expression(tokens)
-        match_token_value(tokens, "]")
+        while (tokens[0][1] == "["):
+            match_token_value(tokens, "[")
+            match_expression(tokens)
+            vm_code.append("add")
+            vm_code.append("pop pointer 1")
+            match_token_value(tokens, "]")
     
     match_token_value(tokens, "=")
     match_expression(tokens)
+
+    vm_code.append("pop " + symboltable.kind_of(varname) + " " + str(symboltable.index_of(varname)))
+
     match_token_value(tokens, ";")
     print("</let statement>")
 
@@ -345,7 +424,7 @@ def match_return_statement(tokens):
 def match_keywordConstant(tokens):
     if (tokens[0][1] not in ["true", "false", "null", "this"]):
         raise Exception("Expected keyword constant but got", tokens[0][1], tokens)
-    match_token_value(tokens, tokens[0][1])
+    return match_token_value(tokens, tokens[0][1])
 
 def match_unaryOp(tokens):
     match_token_value(tokens, "-")
@@ -353,32 +432,41 @@ def match_unaryOp(tokens):
 def match_op(tokens):
     if (tokens[0][1] not in "+-*/&|<>="):
         raise Exception("Expected op but got", tokens[0][1], tokens)
-    match_token_value(tokens, tokens[0][1])
+    return match_token_value(tokens, tokens[0][1])
 
 def match_term(tokens):
     print("<term>")
     type_token, value_token = tokens[0]
     # Integer constant 
     if (type_token == "integer"):
-        match_token_type(tokens, "integer")
+        integer_value = match_token_type(tokens, "integer")
+        vm_code.append("push constant " + integer_value)
     # String constant
     elif (type_token == "string"):
         match_token_type(tokens, "string")
     # Keyword constant
     elif (value_token in ["true", "false", "null", "this"]):
-        match_keywordConstant(tokens)
+        keyword_constant = match_keywordConstant(tokens)
+        vm_writer_keyword_constant(keyword_constant)
     # VarName[Expression]
     elif (type_token == "identifier" and tokens[1][1] == "["):
-        match_varName(tokens)
+
+        varname = match_varName(tokens)
+        vm_code.append("push " + symboltable.kind_of(varname) + " " + str(symboltable.index_of(varname)))
         match_token_value(tokens, "[")
         match_expression(tokens)
+        vm_code.append("add")
+        vm_code.append("pop pointer 1")
+        vm_code.append("push that 0")
         match_token_value(tokens, "]")
     # Subroutine call
     elif (type_token == "identifier" and tokens[1][1] == "("):
+
         match_subroutine_call(tokens)
     # VarName
     elif (type_token == "identifier"):
-        match_varName(tokens)
+        varname = match_varName(tokens)
+        vm_code.append("push " + symboltable.kind_of(varname) + " " + str(symboltable.index_of(varname)))
     # (expression)
     elif (value_token == "("):
         match_token_value(tokens, "(")
@@ -389,6 +477,7 @@ def match_term(tokens):
     elif (value_token == "-"):
         match_token_value(tokens, "-")
         match_term(tokens)
+        vm_code.append("neg")
     else:
         raise Exception("unknown term", tokens)
     
@@ -399,8 +488,9 @@ def match_expression(tokens):
     match_term(tokens)
 
     while (tokens[0][1] in "+-*/&|<>="):
-        match_op(tokens)
+        op = match_op(tokens)
         match_term(tokens)
+        vm_writer_op(op)
 
     print("</expression>")
 
@@ -438,50 +528,74 @@ def match_expressionList(tokens):
     print("</expressionList>")
 
 
+
 def generate_vm_code(jack_code):
+    global vm_code, symboltable
+    vm_code = []
+    symboltable = st()
+
     tokens = tokenize_jack_code(jack_code)
     match_class(tokens)
 
 
-jack_code = """
-    class Bar {
-        method Fraction foo(int y) {
-            var int temp;
-            let temp = (xxx + 12)*-63;
-        }
-    }
-"""
+# jack_code = """
+#     class Bar {
+#         method Fraction foo(int y) {
+#             var int temp;
+#             let temp = (xxx + 12)*-63;
+#         }
+#     }
+# """
 
-ExpressionlessSquare = """
-class square {
-    method void incSize() {
-        if (x) {
-            do erase();
-            let size = size;
-            do draw();
+# ExpressionlessSquare = """
+# class square {
+#     method void incSize() {
+#         if (x) {
+#             do erase();
+#             let size = size;
+#             do draw();
 
-        }
-        return;
-    }
-}
-"""
+#         }
+#         return;
+#     }
+# }
+# """
 
-Square = """
-class square {
-    method void incSize() {
-        if (((y + size) < 254) & ((x + size) < 510 )) {
-            do erase();
-            let size = size + 2;
-            do draw();
-        }
+# Square = """
+# class square {
+#     method void incSize() {
+#         if (((y + size) < 254) & ((x + size) < 510 )) {
+#             do erase();
+#             let size = size + 2;
+#             do draw();
+#         }
 
-        return;
-    }
-}
-"""
+#         return;
+#     }
+# }
+# """
 
-generate_vm_code(Square)
-print("")
-generate_vm_code(ExpressionlessSquare)
-print("")
-generate_vm_code(jack_code)
+
+
+# generate_vm_code(Square)
+# print("")
+# generate_vm_code(ExpressionlessSquare)
+# print("")
+# generate_vm_code(jack_code)
+
+# code = """
+#     class bruh {
+#         static int ram, ll;
+#         function void d() {
+#             let ram = 0;
+#             let ram[16] = 69;
+#         }
+#     }
+
+# """
+
+# generate_vm_code(code)
+# print(symboltable.symbol_hashmap)
+# print(vm_code)
+
+
