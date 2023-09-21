@@ -154,7 +154,6 @@ symboltable = st()
 def match_token_value(tokens, value):
     type_token, value_token = tokens.pop(0)
 
-    print("<" + type_token + ">", value_token, "</" + type_token + ">")
 
     if (value != value_token):
         raise Exception("Expected", value, "but got", value_token, "Tokenlist outputed:", tokens)
@@ -164,7 +163,6 @@ def match_token_value(tokens, value):
 def match_token_type(tokens, typer):
     type_token, value_token = tokens.pop(0)
 
-    print("<" + type_token + ">", value_token, "</" + type_token + ">")
 
     if (typer != type_token):
         raise Exception("Expected", typer, "but got", type_token, "Tokenlist outputed:", tokens)
@@ -173,7 +171,6 @@ def match_token_type(tokens, typer):
 
 
 def match_class(tokens):
-    print("<class>")
     match_token_value(tokens, "class")
     match_class_names(tokens)
     match_token_value(tokens, "{")
@@ -186,7 +183,6 @@ def match_class(tokens):
 
     match_token_value(tokens, "}")
 
-    print("</class>")
 
 
 
@@ -341,7 +337,6 @@ def match_statement(tokens):
 
 
 def match_let_statement(tokens):
-    print("<let statement>")
     match_token_value(tokens, "let")
     varname = match_varName(tokens)
 
@@ -351,23 +346,27 @@ def match_let_statement(tokens):
         match_token_value(tokens, "[")
         match_expression(tokens)
         vm_code.append("add")
-        vm_code.append("pop pointer 1")
         match_token_value(tokens, "]")
 
         while (tokens[0][1] == "["):
             match_token_value(tokens, "[")
             match_expression(tokens)
             vm_code.append("add")
-            vm_code.append("pop pointer 1")
             match_token_value(tokens, "]")
+        
+        vm_code.append("pop pointer 1")
     
-    match_token_value(tokens, "=")
-    match_expression(tokens)
+        match_token_value(tokens, "=")
+        match_expression(tokens)
 
-    vm_code.append("pop " + symboltable.kind_of(varname) + " " + str(symboltable.index_of(varname)))
+        vm_code.append("pop that 0")
+    else:
+        match_token_value(tokens, "=")
+        match_expression(tokens)
+        vm_code.append("pop static " + str(symboltable.index_of(varname)))
+
 
     match_token_value(tokens, ";")
-    print("</let statement>")
 
 def match_if_statement(tokens):
     print("<if statement>")
@@ -536,6 +535,7 @@ def generate_vm_code(jack_code):
 
     tokens = tokenize_jack_code(jack_code)
     match_class(tokens)
+    return vm_code
 
 
 # jack_code = """

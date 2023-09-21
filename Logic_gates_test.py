@@ -3,6 +3,7 @@ import numpy as np
 import logic as lg
 import assembler as assem
 import vm 
+import syntax_analayzer as sa
 
 
 
@@ -1992,7 +1993,61 @@ class TestFunctions(unittest.TestCase):
         Jack coding tests
 
     """
-    def test_setting_memory(self):
+    def test_let_statement(self):
+        cmp = lg.hack_computer()
+        code = """
+            class bruh {
+                static int ram, ll;
+                function void d() {
+                    let ram = 0;
+                    let ram[8000] = 69;
+                    let ram[8001] = 420;
+                    let ram[8002] = 911;
+                    let ram[8003] = 8008;
+                    let ram[8004] = 5321;
+                    let ram[8005] = 12345;
+                    let ram[8006] = 30000;
+                    let ram[8007] = 9009;
+                    let ram[8008] = 211;
+                    let ram[8009] = 1;
+                }
+            }
+
+        """
+
+        vm_code = sa.generate_vm_code(code)
+        
+        assembly_code = vm.convert_VM_code_to_assembly(vm_code)
+        cmp.load_program(assem.get_binary_from_hack_assembly(assembly_code))
+        cmp.do_n_operations(False, 600)
+
+        self.assertEqual(self.convert_list_ints_to_16_bit_binary([69, 420, 911, 8008, 5321, 12345, 30000, 9009, 211, 1]), cmp.get_data_memory(8000, 8010))
+
+
+        code = """
+            class bruh {
+                static int ram, ll, love, you, so;
+                function void d() {
+                    let ram = 99;
+                    let ll = 100;
+                    let love = 101;
+                    let you = 102;
+                    let so = 103;
+                }
+                    
+            }
+
+        """
+
+        vm_code = sa.generate_vm_code(code)
+        assembly_code = vm.convert_VM_code_to_assembly(vm_code)
+        cmp.load_program(assem.get_binary_from_hack_assembly(assembly_code))
+        cmp.do_n_operations(False, 100)
+
+        self.assertEqual(self.convert_list_ints_to_16_bit_binary([99, 100, 101, 102, 103]), cmp.get_data_memory(16, 21))
+
+
+
         pass
 
 
