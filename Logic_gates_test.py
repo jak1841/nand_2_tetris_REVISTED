@@ -2080,6 +2080,56 @@ class TestFunctions(unittest.TestCase):
         self.assertEqual(self.convert_list_ints_to_16_bit_binary([0, 230, 131071, 0, 0, 232, 229, 0, 7]), cmp.get_data_memory(16, 25))
 
 
+    def test_if_statement(self):
+        cmp = lg.hack_computer()
+        code = """
+            class bruh {
+                static int ram;
+                function void d() {
+                    let ram = 2008;
+                    
+                    if (true) {
+                        let ram[0] = 15;
+                    } else {
+                        let ram[0] = 100;
+                    }
+
+                    if (false) {
+                        let ram[1] = 69; 
+                    } else {
+                        let ram[1] = 96;
+                    }
+
+                    if (8181 = 8181) {
+                        let ram[2] = 90;
+                    } else {
+                        let ram[2] = 91;
+                    }
+
+                    if (8182 < 90) {
+                        let ram[3] = 99;
+                    } else {
+                        let ram[3] = 999;
+                    }
+
+                    if (8 < 9){
+                        let ram[4] = 9999;
+                    }
+                }
+            }
+
+        """
+
+        vm_code = sa.generate_vm_code(code)       
+        assembly_code = vm.convert_VM_code_to_assembly(vm_code)
+        cmp.load_program(assem.get_binary_from_hack_assembly(assembly_code))
+        cmp.do_n_operations(False, 600)
+
+
+        self.assertEqual(self.convert_list_ints_to_16_bit_binary([15, 96, 90, 999, 9999]), cmp.get_data_memory(2008, 2013))
+
+
+
 if __name__ == '__main__':
     unittest.main()
 

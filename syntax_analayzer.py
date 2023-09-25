@@ -306,11 +306,9 @@ def match_subroutine_body(tokens):
 
 
 def match_statements(tokens):
-    print("<statements>")
     while (is_statement(tokens)):
         match_statement(tokens)
 
-    print("</statements>")
 
 
 def is_statement(tokens):
@@ -365,24 +363,41 @@ def match_let_statement(tokens):
 
     match_token_value(tokens, ";")
 
+label_counter = 0
+
 def match_if_statement(tokens):
-    print("<if statement>")
+    global label_counter
+    L1 = "if_label" + str(label_counter)
+    L2 = "if_label" + str(label_counter + 1)
+
     match_token_value(tokens, "if")
     match_token_value(tokens, "(")
     match_expression(tokens)
     match_token_value(tokens, ")")
 
+    vm_code.append("not")   # Calculating -(cond)
+    vm_code.append("if-goto " + L1)
+
+
+
     match_token_value(tokens, "{")
     match_statements(tokens)
     match_token_value(tokens, "}")
+
+    vm_code.append("goto " + L2)
+    vm_code.append("label " + L1)
 
     if (tokens[0][1] == "else"):
         match_token_value(tokens, "else")
         match_token_value(tokens, "{")
         match_statements(tokens)
         match_token_value(tokens, "}")
+    
+    vm_code.append("label " + L2)
+    label_counter+= 2
+    
+    
 
-    print("</if statement>")
 
 
 def match_while_statement(tokens):
@@ -521,9 +536,10 @@ def match_expressionList(tokens):
 
 
 def generate_vm_code(jack_code):
-    global vm_code, symboltable
+    global vm_code, symboltable, label_counter
     vm_code = []
     symboltable = st()
+    label_counter = 0
 
     tokens = tokenize_jack_code(jack_code)
     match_class(tokens)
