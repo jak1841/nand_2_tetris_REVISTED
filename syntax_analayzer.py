@@ -401,15 +401,29 @@ def match_if_statement(tokens):
 
 
 def match_while_statement(tokens):
-    print("<while statement>")
+    global label_counter
+
+    L1 = "while_label" + str(label_counter)
+    L2 = "while_label" + str(label_counter + 1)
+
+
+    vm_code.append("label " + L1)
     match_token_value(tokens, "while")
     match_token_value(tokens, "(")  
     match_expression(tokens)
+
+    vm_code.append("not")
+    vm_code.append("if-goto " + L2)
+
     match_token_value(tokens, ")") 
     match_token_value(tokens, "{")
     match_statements(tokens)
     match_token_value(tokens, "}") 
-    print("</while statement>")
+    vm_code.append("goto " + L1)
+
+    vm_code.append("label " + L2)
+
+    label_counter+=2
 
 def match_do_statement(tokens):
     print("<do statement>")

@@ -2106,15 +2106,17 @@ class TestFunctions(unittest.TestCase):
                         let ram[2] = 91;
                     }
 
+                    if (8 < 9){
+                        let ram[4] = 9999;
+                    }
+
                     if (8182 < 90) {
                         let ram[3] = 99;
                     } else {
                         let ram[3] = 999;
                     }
 
-                    if (8 < 9){
-                        let ram[4] = 9999;
-                    }
+                    
                 }
             }
 
@@ -2126,7 +2128,36 @@ class TestFunctions(unittest.TestCase):
         cmp.do_n_operations(False, 600)
 
 
+
         self.assertEqual(self.convert_list_ints_to_16_bit_binary([15, 96, 90, 999, 9999]), cmp.get_data_memory(2008, 2013))
+
+    def test_while_statement(self):
+        cmp = lg.hack_computer()
+        code = """
+            class bruh {
+                static int ram, s, i;
+                function void d() {
+                    let s = 0;
+                    let i = 0;
+
+                    while (i < 101) {
+                        let s = s + i;
+                        let i = i + 1;
+
+                    }
+                }
+            }
+
+        """    
+
+        vm_code = sa.generate_vm_code(code)       
+        assembly_code = vm.convert_VM_code_to_assembly(vm_code)
+        cmp.load_program(assem.get_binary_from_hack_assembly(assembly_code))
+        cmp.do_n_operations(False, 9500)
+
+        self.assertEqual(self.convert_list_ints_to_16_bit_binary([5050]), cmp.get_data_memory(17, 18))
+
+
 
 
 
