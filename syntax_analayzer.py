@@ -46,7 +46,7 @@ def is_identifier_tokenizer(string, curr_index):
 
 def handle_identifier_tokenizer(string, curr_index):
     curr_token = ""
-    while (curr_index < len(string) and string[curr_index] in "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"):
+    while (curr_index < len(string) and string[curr_index] in "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_"):
         curr_token+= string[curr_index]
     
         curr_index+=1
@@ -165,7 +165,7 @@ def match_token_type(tokens, typer):
 
 
     if (typer != type_token):
-        raise Exception("Expected", typer, "but got", type_token, "Tokenlist outputed:", tokens)
+        raise Exception("Expected", typer, "but got", type_token, value_token,  "Tokenlist outputed:", tokens)
     
     return value_token
 
@@ -225,7 +225,6 @@ def is_classVarDec(tokens):
     return (tokens[0][1] in ["static", "field"])
 
 def match_classVarDec(tokens):
-    print("<classVarDec>")
     type_token, value_token = tokens[0]
     if (value_token not in ["static", "field"]):
         raise Exception("Expected static or field but got", value_token)
@@ -242,11 +241,9 @@ def match_classVarDec(tokens):
         symboltable.define(name, type_, kind)
     
     match_token_value(tokens, ";")
-    print("</classVarDec>")
 
 
 def match_subroutine_dec(tokens):
-    print("<subroutineDec>")
     type_token, value_token = tokens[0]
 
     if (value_token not in ["constructor", "function", "method"]):
@@ -265,7 +262,7 @@ def match_subroutine_dec(tokens):
     match_token_value(tokens, ")")
     match_subroutine_body(tokens)
 
-    print("</subroutineDec>")
+    
 
 
 
@@ -363,7 +360,7 @@ def match_let_statement(tokens):
     else:
         match_token_value(tokens, "=")
         match_expression(tokens)
-        vm_code.append("pop static " + str(symboltable.index_of(varname)))
+        vm_code.append("pop " + str(symboltable.kind_of(varname)) + " " + str(symboltable.index_of(varname)))
 
 
     match_token_value(tokens, ";")
@@ -434,7 +431,6 @@ def match_op(tokens):
     return match_token_value(tokens, tokens[0][1])
 
 def match_term(tokens):
-    print("<term>")
     type_token, value_token = tokens[0]
     # Integer constant 
     if (type_token == "integer"):
@@ -449,7 +445,6 @@ def match_term(tokens):
         vm_writer_keyword_constant(keyword_constant)
     # VarName[Expression]
     elif (type_token == "identifier" and tokens[1][1] == "["):
-
         varname = match_varName(tokens)
         vm_code.append("push " + symboltable.kind_of(varname) + " " + str(symboltable.index_of(varname)))
         match_token_value(tokens, "[")
@@ -480,10 +475,8 @@ def match_term(tokens):
     else:
         raise Exception("unknown term", tokens)
     
-    print("</term>")
 
 def match_expression(tokens):
-    print("<expression>")
     match_term(tokens)
 
     while (tokens[0][1] in "+-*/&|<>="):
@@ -491,7 +484,6 @@ def match_expression(tokens):
         match_term(tokens)
         vm_writer_op(op)
 
-    print("</expression>")
 
 def match_subroutine_call(tokens):
     print("<subroutine call>")

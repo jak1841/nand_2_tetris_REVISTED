@@ -2050,7 +2050,34 @@ class TestFunctions(unittest.TestCase):
 
         pass
 
+    def test_expression(self):
+        cmp = lg.hack_computer()
+        code = """
+            class bruh {
+                static int ram, integer_constant_, kc1, kc2, kc3, array, varname_ident, unary_term, complex_computation;
+                function void d() {
+                    let ram = 0;
+                    let integer_constant_ = 230;
+                    let kc1 = true;
+                    let kc2 = false;
+                    let kc3 = null;
 
+                    let array = ram[17] + 2;
+                    let varname_ident = kc1 + integer_constant_;
+                    let unary_term = -kc1 + -1;
+                    let complex_computation = (3 - 2) + 1 + 5;
+                }
+            }
+
+        """
+
+        vm_code = sa.generate_vm_code(code)
+        
+        assembly_code = vm.convert_VM_code_to_assembly(vm_code)
+        cmp.load_program(assem.get_binary_from_hack_assembly(assembly_code))
+        cmp.do_n_operations(False, 1000)
+
+        self.assertEqual(self.convert_list_ints_to_16_bit_binary([0, 230, 131071, 0, 0, 232, 229, 0, 7]), cmp.get_data_memory(16, 25))
 
 
 if __name__ == '__main__':
