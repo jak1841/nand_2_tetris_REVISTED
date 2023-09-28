@@ -190,7 +190,7 @@ def match_varName(tokens):
     return match_token_type(tokens, "identifier")
 
 def match_subroutine_name(tokens):
-    match_token_type(tokens, "identifier")
+    return match_token_type(tokens, "identifier")
 
 def match_class_names(tokens):
     match_token_type(tokens, "identifier")
@@ -209,17 +209,18 @@ def match_type(tokens):
 
 
 def match_varDec(tokens):
-    print("<varDec>")
     match_token_value(tokens, "var")
-    match_type(tokens)
-    match_varName(tokens)
+    type_ = match_type(tokens)
+    name = match_varName(tokens)
+
+    symboltable.define(name, type_, "local")
 
     while (tokens[0][1] == ","):
         match_token_value(tokens, ",")
-        match_varName(tokens)
+        name = match_varName(tokens)
+        symboltable.define(name, type_, "local")
     
     match_token_value(tokens, ";")
-    print("</varDec>")
 
 def is_classVarDec(tokens):
     return (tokens[0][1] in ["static", "field"])
@@ -256,11 +257,11 @@ def match_subroutine_dec(tokens):
     else:
         match_type(tokens)
     
-    match_subroutine_name(tokens)
+    subroutine_name = match_subroutine_name(tokens)
     match_token_value(tokens, "(")
     match_parameter_list(tokens)
     match_token_value(tokens, ")")
-    match_subroutine_body(tokens)
+    match_subroutine_body(tokens, subroutine_name)
 
     
 
@@ -285,17 +286,18 @@ def match_parameter_list(tokens):
 
     print("</parameterlist>")
 
-def match_subroutine_body(tokens):
-    print("<subroutinebody>")
+# furthermore it returns the number of local variables in subroutine body
+def match_subroutine_body(tokens, subroutine_name):
     match_token_value(tokens, "{")
 
     while (tokens[0][1] == "var"):
         match_varDec(tokens)
 
+    vm_code.append("function " + subroutine_name + " " + str(symboltable.var_index))
+
 
     match_statements(tokens)
     match_token_value(tokens, "}")
-    print("</subroutinebody>")
 
 
 """
@@ -426,19 +428,17 @@ def match_while_statement(tokens):
     label_counter+=2
 
 def match_do_statement(tokens):
-    print("<do statement>")
     match_token_value(tokens, "do")
     match_subroutine_call(tokens)
     match_token_value(tokens, ";")
-    print("</do statement>")
 
 def match_return_statement(tokens):
-    print("<return statement>")
+
     match_token_value(tokens, "return")
     if (tokens[0][1] != ";"):
         match_expression(tokens)
+    vm_code.append("return")
     match_token_value(tokens, ";")
-    print("</return statement>")
 
 """
 
@@ -515,37 +515,41 @@ def match_expression(tokens):
 
 
 def match_subroutine_call(tokens):
-    print("<subroutine call>")
+    
     if (tokens[1][1] == "("):
-        match_subroutine_name(tokens)
+        subroutine_name = match_subroutine_name(tokens)
         match_token_value(tokens, "(")
-        match_expressionList(tokens)
+        num_args = match_expressionList(tokens)
+
+        vm_code.append("call " + subroutine_name + " " + str(num_args))
         match_token_value(tokens, ")")
     else:
         match_varName(tokens)
-        match_token_value(tokens, ".")
-        match_subroutine_name(tokens)
+        while (tokens[0][1] == "."):
+            match_token_value(tokens, ".")
+            match_subroutine_name(tokens)
         match_token_value(tokens, "(")
         match_expressionList(tokens)
         match_token_value(tokens, ")")
+
     
-    print("</subroutine call>")
 
 
 
 
 def match_expressionList(tokens):
-    print("<expressionList>")
     if (tokens[0][1] == ")"):
-        print("</expressionList>")
-        return 
+        return 0
+    num_arg = 1
     match_expression(tokens)
 
     while (tokens[0][1] == ","):
+        num_arg+=1
         match_token_value(tokens, ",")
         match_expression(tokens)
     
-    print("</expressionList>")
+    return num_arg
+    
 
 
 
@@ -554,6 +558,24 @@ def generate_vm_code(jack_code):
     vm_code = []
     symboltable = st()
     label_counter = 0
+
+    # Boot strap code which calls function name
+    # vm_code.append("call main 0")
+
+    tokens = tokenize_jack_code(jack_code)
+    match_class(tokens)
+    return vm_code
+
+def generate_vm_code_with_bootstrap(jack_code):
+    global vm_code, symboltable, label_counter
+    vm_code = ["call main 0", 
+               "label main.end",
+               "goto main.end"]
+    symboltable = st()
+    label_counter = 0
+
+    # Boot strap code which calls function name
+    # vm_code.append("call main 0")
 
     tokens = tokenize_jack_code(jack_code)
     match_class(tokens)

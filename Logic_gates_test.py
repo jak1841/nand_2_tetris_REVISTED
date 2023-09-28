@@ -2157,6 +2157,42 @@ class TestFunctions(unittest.TestCase):
 
         self.assertEqual(self.convert_list_ints_to_16_bit_binary([5050]), cmp.get_data_memory(17, 18))
 
+    def test_local_variables(self):
+        cmp = lg.hack_computer()
+        code = """
+            class Main {
+                static int ram, ram1, ram2;
+                function void main () {
+                    do d();
+                    return 0;
+                }
+                function void d() {
+                    var int i, j, z;
+                    let i = 30;
+                    let i = i+i+i+i+i+i+i+i+i+i;
+                    let i = i+i+i+i+i+i+i+i+i+i;
+
+                    let j = i + -3000 + 6;
+
+                    let z = i + j;
+
+                    let ram = i;
+                    let ram1 = j;
+                    let ram2 = z;
+                    return 0;
+                }
+            }
+
+        """
+
+        vm_code = sa.generate_vm_code_with_bootstrap(code)        
+        assembly_code = vm.convert_VM_code_to_assembly(vm_code)
+        cmp.load_program(assem.get_binary_from_hack_assembly(assembly_code))
+        cmp.do_n_operations(False, 800)
+
+        self.assertEqual(self.convert_list_ints_to_16_bit_binary([3000, 6, 3006]), cmp.get_data_memory(16, 19))
+
+
 
 
 

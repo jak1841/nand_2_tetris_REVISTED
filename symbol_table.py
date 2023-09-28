@@ -11,6 +11,14 @@ class symboltable:
         self.arg_index = 0
         self.var_index = 0
 
+        self.function_scope_hashmap = {}
+
+
+    def startSubroutine(self):
+        self.arg_index = 0
+        self.var_index = 0
+        self.function_scope_hashmap = {}        
+
     # Incremenrts and returns the variable counter of 
     def increment_variable_counter(self, kind):
         if (kind == "static"):
@@ -22,7 +30,7 @@ class symboltable:
         elif (kind == "arg"):
             self.arg_index+=1
             return self.arg_index-1
-        elif (kind == "var"):
+        elif (kind == "local"):
             self.var_index+=1
             return self.var_index-1
         else:
@@ -30,37 +38,51 @@ class symboltable:
     
     # Defines a new identifier with name, type and kind
     def define(self, name, type_, kind):
-        if (name in self.symbol_hashmap):
+        if (name in self.symbol_hashmap or name in self.function_scope_hashmap):
             raise Exception("Symbol already encountered", name)
         
-        if (kind not in ["static", "field", "arg", "var"]):
+        if (kind not in ["static", "field", "arg", "local"]):
             raise Exception("unknown kind", kind)
 
         index = self.increment_variable_counter(kind)
 
-        self.symbol_hashmap[name] = (type_, kind, index)
+        if (kind in ["arg", "local"]):
+            self.function_scope_hashmap[name] = (type_, kind, index)
+        else:
+            self.symbol_hashmap[name] = (type_, kind, index)
         
     # Returns the kind of variable if it exists
     def kind_of(self, name):
-        if (name not in self.symbol_hashmap):
-            raise Exception("identifer not defined in symbolname", name)
+        if (name not in self.symbol_hashmap and name not in self.function_scope_hashmap):
+            raise Exception("identifer not defined in symboltable", name)
         
-        type_, kind, index = self.symbol_hashmap[name]
+        if (name in self.symbol_hashmap):
+            type_, kind, index = self.symbol_hashmap[name]
 
-        return kind
+            return kind
+        else:
+            type_, kind, index = self.function_scope_hashmap[name]
+            return kind
     
     def type_of(self, name):
-        if (name not in self.symbol_hashmap):
+        if (name not in self.symbol_hashmap and name not in self.function_scope_hashmap):
             raise Exception("identifer not defined in symbolname", name)
         
-        type_, kind, index = self.symbol_hashmap[name]
-
-        return type_
+        if (name in self.symbol_hashmap):
+            type_, kind, index = self.symbol_hashmap[name]
+            return type_
+        else:
+            type_, kind, index = self.function_scope_hashmap[name]
+            return type_
     
     def index_of(self, name):
-        if (name not in self.symbol_hashmap):
+        if (name not in self.symbol_hashmap and name not in self.function_scope_hashmap):
             raise Exception("identifer not defined in symbolname", name)
         
-        type_, kind, index = self.symbol_hashmap[name]
+        if (name in self.symbol_hashmap):
+            type_, kind, index = self.symbol_hashmap[name]
+            return index
+        else:
+            type_, kind, index = self.function_scope_hashmap[name]
+            return index
 
-        return index
