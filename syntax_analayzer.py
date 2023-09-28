@@ -109,7 +109,6 @@ xml_string = ""
 """
 
 def vm_writer_op(op):
-    print(op)
     if (op == "+"):
         vm_code.append("add")
     elif (op == "-"):
@@ -268,9 +267,7 @@ def match_subroutine_dec(tokens):
 
 
 def match_parameter_list(tokens):
-    print("<parameterlist>")
     if (tokens[0][1] == ")"):
-        print("</parameterlist>")
         return
 
     match_type(tokens)
@@ -284,7 +281,6 @@ def match_parameter_list(tokens):
     
 
 
-    print("</parameterlist>")
 
 # furthermore it returns the number of local variables in subroutine body
 def match_subroutine_body(tokens, subroutine_name):
