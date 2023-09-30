@@ -27,7 +27,7 @@ class symboltable:
         elif (kind == "field"):
             self.field_index+=1
             return self.field_index-1
-        elif (kind == "arg"):
+        elif (kind == "argument"):
             self.arg_index+=1
             return self.arg_index-1
         elif (kind == "local"):
@@ -41,12 +41,12 @@ class symboltable:
         if (name in self.symbol_hashmap or name in self.function_scope_hashmap):
             raise Exception("Symbol already encountered", name)
         
-        if (kind not in ["static", "field", "arg", "local"]):
+        if (kind not in ["static", "field", "argument", "local"]):
             raise Exception("unknown kind", kind)
 
         index = self.increment_variable_counter(kind)
 
-        if (kind in ["arg", "local"]):
+        if (kind in ["argument", "local"]):
             self.function_scope_hashmap[name] = (type_, kind, index)
         else:
             self.symbol_hashmap[name] = (type_, kind, index)

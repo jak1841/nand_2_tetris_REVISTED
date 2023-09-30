@@ -245,6 +245,7 @@ def match_classVarDec(tokens):
 
 def match_subroutine_dec(tokens):
     type_token, value_token = tokens[0]
+    symboltable.startSubroutine()
 
     if (value_token not in ["constructor", "function", "method"]):
         raise Exception("Expected constructor, function, or method but got", value_token, tokens)
@@ -270,13 +271,16 @@ def match_parameter_list(tokens):
     if (tokens[0][1] == ")"):
         return
 
-    match_type(tokens)
-    match_varName(tokens)
+    type_ = match_type(tokens)
+    var_name = match_varName(tokens)
+
+    symboltable.define(var_name, type_, "argument")
 
     while (tokens[0][1] == ","):
         match_token_value(tokens, ",")
-        match_type(tokens)
-        match_varName(tokens)
+        type_ = match_type(tokens)
+        var_name = match_varName(tokens)
+        symboltable.define(var_name, type_, "argument")
     
     
 
@@ -538,6 +542,7 @@ def match_expressionList(tokens):
         return 0
     num_arg = 1
     match_expression(tokens)
+
 
     while (tokens[0][1] == ","):
         num_arg+=1

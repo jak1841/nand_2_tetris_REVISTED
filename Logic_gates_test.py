@@ -2192,6 +2192,61 @@ class TestFunctions(unittest.TestCase):
 
         self.assertEqual(self.convert_list_ints_to_16_bit_binary([3000, 6, 3006]), cmp.get_data_memory(16, 19))
 
+    def test_function_calling(self):
+        # Non recursive function 
+        cmp = lg.hack_computer()
+        code = """
+            class Main {
+                static int ram, ram1, ram2;
+                function void main () {
+                    let ram = d(2);
+                    let ram1 = d(20);
+                    let ram2 = d(6912);
+
+                    return 0;
+                }
+                function void d(int x) {
+                    return x + x;
+                }
+            }
+
+        """
+
+        vm_code = sa.generate_vm_code_with_bootstrap(code)        
+        assembly_code = vm.convert_VM_code_to_assembly(vm_code)
+        cmp.load_program(assem.get_binary_from_hack_assembly(assembly_code))
+        cmp.do_n_operations(False, 800)
+    
+        self.assertEqual(self.convert_list_ints_to_16_bit_binary([4, 40, 13824]), cmp.get_data_memory(16, 19))
+
+        # Recursive function 
+        code = """
+            class Main {
+                static int ram, ram1, ram2;
+                function void main () {
+                    let ram = multiply(5, 2);
+                    let ram1 = multiply(30, 1);
+                    let ram2 = multiply(multiply(3, 2), multiply(5, 1));
+                    
+
+                    return 0;
+                }
+                function void multiply(int x, int y) {
+                    if (y = 0) {
+                        return 0;
+                    }
+                    return x + multiply(x, y - 1);
+                }
+            }
+
+        """
+
+        vm_code = sa.generate_vm_code_with_bootstrap(code)        
+        assembly_code = vm.convert_VM_code_to_assembly(vm_code)
+        cmp.load_program(assem.get_binary_from_hack_assembly(assembly_code))
+        cmp.do_n_operations(False, 3000)
+
+        self.assertEqual(self.convert_list_ints_to_16_bit_binary([10, 30, 30]), cmp.get_data_memory(16, 19))
 
 
 
