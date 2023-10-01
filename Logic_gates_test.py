@@ -2163,7 +2163,7 @@ class TestFunctions(unittest.TestCase):
             class Main {
                 static int ram, ram1, ram2;
                 function void main () {
-                    do d();
+                    do Main.d();
                     return 0;
                 }
                 function void d() {
@@ -2198,10 +2198,10 @@ class TestFunctions(unittest.TestCase):
         code = """
             class Main {
                 static int ram, ram1, ram2;
-                function void main () {
-                    let ram = d(2);
-                    let ram1 = d(20);
-                    let ram2 = d(6912);
+                function void main() {
+                    let ram = Main.d(2);
+                    let ram1 = Main.d(20);
+                    let ram2 = Main.d(6912);
 
                     return 0;
                 }
@@ -2224,9 +2224,9 @@ class TestFunctions(unittest.TestCase):
             class Main {
                 static int ram, ram1, ram2;
                 function void main () {
-                    let ram = multiply(5, 2);
-                    let ram1 = multiply(30, 1);
-                    let ram2 = multiply(multiply(3, 2), multiply(5, 1));
+                    let ram = Main.multiply(5, 2);
+                    let ram1 = Main.multiply(30, 1);
+                    let ram2 = Main.multiply(Main.multiply(3, 2), Main.multiply(5, 1));
                     
 
                     return 0;
@@ -2235,7 +2235,7 @@ class TestFunctions(unittest.TestCase):
                     if (y = 0) {
                         return 0;
                     }
-                    return x + multiply(x, y - 1);
+                    return x + Main.multiply(x, y - 1);
                 }
             }
 

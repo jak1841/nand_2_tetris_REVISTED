@@ -148,6 +148,7 @@ def vm_writer_keyword_constant(keyword):
 
 vm_code = []
 symboltable = st()
+current_class_name = ""
 
 # Given a list of tokens an a value, assert that value matches the token
 def match_token_value(tokens, value):
@@ -170,8 +171,9 @@ def match_token_type(tokens, typer):
 
 
 def match_class(tokens):
+    global current_class_name
     match_token_value(tokens, "class")
-    match_class_names(tokens)
+    current_class_name = match_class_names(tokens)
     match_token_value(tokens, "{")
 
     while (tokens[0][1] in ["static", "field"]):
@@ -192,7 +194,7 @@ def match_subroutine_name(tokens):
     return match_token_type(tokens, "identifier")
 
 def match_class_names(tokens):
-    match_token_type(tokens, "identifier")
+    return match_token_type(tokens, "identifier")
 
 def match_type(tokens):
     type_token, value_token = tokens[0]
@@ -293,7 +295,7 @@ def match_subroutine_body(tokens, subroutine_name):
     while (tokens[0][1] == "var"):
         match_varDec(tokens)
 
-    vm_code.append("function " + subroutine_name + " " + str(symboltable.var_index))
+    vm_code.append("function " + current_class_name+ "." + subroutine_name + " " + str(symboltable.var_index))
 
 
     match_statements(tokens)
@@ -483,8 +485,7 @@ def match_term(tokens):
         vm_code.append("push that 0")
         match_token_value(tokens, "]")
     # Subroutine call
-    elif (type_token == "identifier" and tokens[1][1] == "("):
-
+    elif (type_token == "identifier" and tokens[1][1] == "."):
         match_subroutine_call(tokens)
     # VarName
     elif (type_token == "identifier"):
@@ -516,21 +517,13 @@ def match_expression(tokens):
 
 def match_subroutine_call(tokens):
     
-    if (tokens[1][1] == "("):
-        subroutine_name = match_subroutine_name(tokens)
-        match_token_value(tokens, "(")
-        num_args = match_expressionList(tokens)
-
-        vm_code.append("call " + subroutine_name + " " + str(num_args))
-        match_token_value(tokens, ")")
-    else:
-        match_varName(tokens)
-        while (tokens[0][1] == "."):
-            match_token_value(tokens, ".")
-            match_subroutine_name(tokens)
-        match_token_value(tokens, "(")
-        match_expressionList(tokens)
-        match_token_value(tokens, ")")
+    class_name = match_varName(tokens)
+    match_token_value(tokens, ".")
+    subroutine_name = match_subroutine_name(tokens)
+    match_token_value(tokens, "(")
+    num_args = match_expressionList(tokens)
+    vm_code.append("call " + class_name + "." + subroutine_name + " " + str(num_args))
+    match_token_value(tokens, ")")
 
     
 
@@ -568,79 +561,22 @@ def generate_vm_code(jack_code):
     return vm_code
 
 def generate_vm_code_with_bootstrap(jack_code):
-    global vm_code, symboltable, label_counter
-    vm_code = ["call main 0", 
+    global vm_code, symboltable, label_counter, current_class_name
+    vm_code = ["call Main.main 0", 
                "label main.end",
                "goto main.end"]
     symboltable = st()
     label_counter = 0
+    current_class_name = ""
 
     # Boot strap code which calls function name
     # vm_code.append("call main 0")
 
     tokens = tokenize_jack_code(jack_code)
-    match_class(tokens)
+    while (tokens and tokens[0][1] == "class"):
+        match_class(tokens)
     return vm_code
 
 
-# jack_code = """
-#     class Bar {
-#         method Fraction foo(int y) {
-#             var int temp;
-#             let temp = (xxx + 12)*-63;
-#         }
-#     }
-# """
-
-# ExpressionlessSquare = """
-# class square {
-#     method void incSize() {
-#         if (x) {
-#             do erase();
-#             let size = size;
-#             do draw();
-
-#         }
-#         return;
-#     }
-# }
-# """
-
-# Square = """
-# class square {
-#     method void incSize() {
-#         if (((y + size) < 254) & ((x + size) < 510 )) {
-#             do erase();
-#             let size = size + 2;
-#             do draw();
-#         }
-
-#         return;
-#     }
-# }
-# """
-
-
-
-# generate_vm_code(Square)
-# print("")
-# generate_vm_code(ExpressionlessSquare)
-# print("")
-# generate_vm_code(jack_code)
-
-# code = """
-#     class bruh {
-#         static int ram, ll;
-#         function void d() {
-#             let ram = 0;
-#             let ram[16] = 69;
-#         }
-#     }
-
-# """
-
-# generate_vm_code(code)
-# print(symboltable.symbol_hashmap)
-# print(vm_code)
 
 
