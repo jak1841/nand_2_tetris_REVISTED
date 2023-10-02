@@ -57,7 +57,7 @@ def full_adder(a, b, cin):
 
 # Given two binary numbers which will be assumed to be sixteen bit will reurn another binary number a + b.
 def adder_16_bit(a, b):
-    a_sum_b = np.copy(zero)
+    a_sum_b = np.zeros(16, dtype=bool)
 
     cin = False
     for x in range(16):
@@ -69,6 +69,7 @@ def adder_16_bit(a, b):
 
 
     return a_sum_b
+
 
 # instead of creating a copy of np array will simply just do the results onto a and return it there.
 def adder_16_bit_no_creatio(a, b):
@@ -86,39 +87,27 @@ zero = np.array([False for x in range(16)])
 
 # Given 16 bit and its corresponding flags will return a list containing outputs, zero flag and negative flag
 def alu_16_bit(x, y, zx, nx, zy, ny, f, no):
-    speed_fast = True
-    if (speed_fast):
-        out = None
-        if (zx):
-            x = zero
-        if (nx):
-            x = ~x
-        if (zy):
-            y = zero
-        if (ny):
-            y = ~y
-        if (f):
-            out = adder_16_bit(x, y)
-        else:
-            out = x & y
-        if (no):
-            out = ~out
-        ng = out[0]
-        zr = np.array_equal(out, zero)
-        return [out, zr, ng]
     
+    out = None
+    if (zx):
+        x = zero
+    if (nx):
+        x = ~x
+    if (zy):
+        y = zero
+    if (ny):
+        y = ~y
+    if (f):
+        out = adder_16_bit(x, y)
     else:
-        is_x_zero = multiplexor(x, zero, zx)
-        is_x_negate = multiplexor(is_x_zero, ~is_x_zero, nx)
-        is_y_zero = multiplexor(y, zero, zy)
-        is_y_negate = multiplexor(is_y_zero, ~is_y_zero, ny)
-        add_x_y = adder_16_bit(is_x_negate, is_y_negate)
-        and_x_y = is_x_negate & is_y_negate
-        is_add_or_and = multiplexor(and_x_y, add_x_y, f)
-        out = multiplexor(is_add_or_and, ~is_add_or_and, no)
-        ng = out[0]
-        zr = np.array_equal(out, zero)
-        return [out, zr, ng]
+        out = x & y
+    if (no):
+        out = ~out
+    ng = out[0]
+    zr = np.array_equal(out, zero)
+    return [out, zr, ng]
+    
+    
 
 # Given an ALU and binary flags bit representation will return a list containing output, zero flag, negative flag
 def alu_binary_flags_16_bit(x, y, bf):
@@ -180,6 +169,9 @@ def init_comp_hashmap():
     comp_hashmap_to_binary["M-D"] = "1000111"
     comp_hashmap_to_binary["D&M"] = "1000000"
     comp_hashmap_to_binary["D|M"] = "1010101"
+
+    
+
 init_comp_hashmap()
 dest_hashmap_to_binary = dict()
 def init_dest_hashmap():

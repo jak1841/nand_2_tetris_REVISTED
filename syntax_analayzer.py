@@ -569,14 +569,40 @@ def generate_vm_code_with_bootstrap(jack_code):
     label_counter = 0
     current_class_name = ""
 
-    # Boot strap code which calls function name
-    # vm_code.append("call main 0")
+    jack_code = add_libraries_to_jack_code(jack_code)
 
     tokens = tokenize_jack_code(jack_code)
     while (tokens and tokens[0][1] == "class"):
         match_class(tokens)
     return vm_code
 
+# adds the math library to jack code 
+def add_math_libary(jack_code):
+    math_library = """
+        class Math {
+            function int multiply(int x, int y) {
+                var int sum, shiftedX;
+                let shiftedX = 1;
+                while (shiftedX < 32768) {
+                    if ((shiftedX & y) = shiftedX) {
+                        let sum = sum + x;
+                    }
+                    let x = x + x;
+                    let shiftedX = shiftedX + shiftedX;
+                }
+                return sum;
+            }
 
 
 
+
+
+
+        }
+
+    """
+    return math_library + jack_code
+
+def add_libraries_to_jack_code(jack_code):
+    jack_code = add_math_libary(jack_code)
+    return jack_code

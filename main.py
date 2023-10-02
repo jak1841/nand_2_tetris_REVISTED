@@ -2,6 +2,7 @@ import tkinter as tk
 import logic as lg
 import assembler as assem
 import vm as VM
+import time
 
 # def change_pixel(x, y):
 #     canvas.create_rectangle(x, y, x+1, y+1, fill="red")  # Change pixel color to red
@@ -53,11 +54,22 @@ VM_CODE = [
 assembly_code = VM.convert_VM_code_to_assembly(VM_CODE)
 cmp.load_program(assem.get_binary_from_hack_assembly(assembly_code))
 
-cmp.do_n_operations(False, 9000)
-cmp.show_data_memory(16, 20)
 
 
 
+
+def check_speed():
+    start_time = time.time()
+    cmp.do_n_operations(False, 100000)
+
+    end_time = time.time()
+
+    elapsed_time = end_time - start_time
+
+    print(f"Elapsed time: {elapsed_time} seconds")
+
+
+check_speed()
 
 
 
