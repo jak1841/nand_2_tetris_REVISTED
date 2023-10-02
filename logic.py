@@ -174,7 +174,8 @@ def init_comp_hashmap():
 
     # Multiplication instruction
     comp_hashmap_to_binary["D*A"] = "0100000"
-    comp_hashmap_to_binary["D*M"] = "1100000"
+    comp_hashmap_to_binary["D*M"] = "1100000" 
+
 
     comp_hashmap_to_binary["M"] = "1110000"
     comp_hashmap_to_binary["!M"] = "1110001"

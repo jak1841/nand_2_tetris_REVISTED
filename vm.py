@@ -60,6 +60,8 @@ def convert_VM_code_to_assembly(VM_code_array):
             hack_assembly_code+= function_vm_to_assembly(x)+ '\n'
         elif (is_return(x)):
             hack_assembly_code+= return_vm_to_assembly(x)+ '\n'
+        elif (is_multiplication(x)):
+            hack_assembly_code+= multiplication_instruction_vm_to_assembly(x) + '\n'
         else:
             raise Exception("Unknown VM instruction", x)
     
@@ -104,6 +106,19 @@ def add_instruction_vm_to_assembly(VM_code):
         A=A-1
         M=D+M
 
+    """
+
+def is_multiplication(VM_code):
+    return VM_code == "mult"
+
+def multiplication_instruction_vm_to_assembly(VM_code):
+    return """
+        @SP
+        M=M-1
+        A=M
+        D=M
+        A=A-1
+        M=D*M
     """
 
 
