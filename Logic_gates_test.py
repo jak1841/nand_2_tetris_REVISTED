@@ -1088,6 +1088,41 @@ class TestFunctions(unittest.TestCase):
         cmp.do_n_operations(False, 5)
         expected = "1111111111111111"
         self.assertEqual(expected, lg.get_binary_number(cmp.cpu.d_register))
+
+        # D*A
+        assembly_code = """
+            @3
+            D=A
+            @6
+            D=D*A
+            @2000
+            D=D*A
+        """
+       
+
+        cmp.load_program(assem.get_binary_from_hack_assembly(assembly_code))
+        cmp.do_n_operations(False, 6)
+        expected = "1000110010100000"
+        self.assertEqual(expected, lg.get_binary_number(cmp.cpu.d_register))
+
+        # D*M
+        assembly_code = """
+            @89
+            D=A
+            @2000
+            
+            M=D
+            @23
+            D=A
+            @2000
+            D=D*M
+        """
+       
+
+        cmp.load_program(assem.get_binary_from_hack_assembly(assembly_code))
+        cmp.do_n_operations(False, 8)
+        expected = "0000011111111111"
+        self.assertEqual(expected, lg.get_binary_number(cmp.cpu.d_register))
         
     def test_jump_assembly(self):
         cmp = lg.hack_computer()

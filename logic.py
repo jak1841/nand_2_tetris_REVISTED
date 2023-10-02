@@ -25,6 +25,11 @@ def convert_boolean_np_array_to_a_int(bool_array):
     integer_value = np.dot(bool_array, 1 << np.arange(bool_array.size - 1, -1, -1))
     return integer_value
 
+def convert_decimal_to_binary(decimal):
+    binary_string = bin(decimal)[2:]
+    binary_string_16_bits = binary_string.zfill(16)
+    return binary_string_16_bits
+
 
 # LOGIC GATES WE CAN USE 
 """
@@ -61,7 +66,7 @@ def adder_16_bit(a, b):
 
     cin = False
     for x in range(16):
-        reverse_index = 15 - x
+        reverse_index = 15 - x            
         a_xor_b = a[reverse_index] ^ b[reverse_index]
         a_sum_b[reverse_index] = a_xor_b ^ cin
         cin = (a[reverse_index] & b[reverse_index]) | (cin & (a_xor_b))
@@ -88,21 +93,29 @@ zero = np.array([False for x in range(16)])
 # Given 16 bit and its corresponding flags will return a list containing outputs, zero flag and negative flag
 def alu_16_bit(x, y, zx, nx, zy, ny, f, no):
     
+    # zx (!nx)
+
     out = None
-    if (zx):
-        x = zero
-    if (nx):
-        x = ~x
-    if (zy):
-        y = zero
-    if (ny):
-        y = ~y
-    if (f):
-        out = adder_16_bit(x, y)
+    # For multiplication 
+    if (zx and not (nx or zy or ny or f or no)):
+        out = convert_boolean_np_array_to_a_int(x) * convert_boolean_np_array_to_a_int(y) % 65536
+        out = get_bit_np_array(convert_decimal_to_binary(out))
+        pass
     else:
-        out = x & y
-    if (no):
-        out = ~out
+        if (zx):
+            x = zero
+        if (nx):
+            x = ~x
+        if (zy):
+            y = zero
+        if (ny):
+            y = ~y
+        if (f):
+            out = adder_16_bit(x, y)
+        else:
+            out = x & y
+        if (no):
+            out = ~out
     ng = out[0]
     zr = np.array_equal(out, zero)
     return [out, zr, ng]
@@ -158,6 +171,10 @@ def init_comp_hashmap():
     comp_hashmap_to_binary["A-D"] = "0000111"
     comp_hashmap_to_binary["D&A"] = "0000000"
     comp_hashmap_to_binary["D|A"] = "0010101" 
+
+    # Multiplication instruction
+    comp_hashmap_to_binary["D*A"] = "0100000"
+    comp_hashmap_to_binary["D*M"] = "1100000"
 
     comp_hashmap_to_binary["M"] = "1110000"
     comp_hashmap_to_binary["!M"] = "1110001"
@@ -225,6 +242,8 @@ class cpu_16_bit:
     
 
     def operation(self, inM, instruction, reset):
+        
+        
         # a instruction
         if (instruction[0] == False):
             self.a_register = instruction
@@ -243,7 +262,7 @@ class cpu_16_bit:
 
         
 
-
+        
         outM, zr, ng = alu_16_bit(self.d_register, A_or_M, instruction[4], instruction[5], instruction[6], instruction[7], instruction[8], instruction[9])
 
 
