@@ -125,6 +125,8 @@ def vm_writer_op(op):
         vm_code.append("eq")
     elif (op == "*"):
         vm_code.append("mult")
+    elif (op == "/"):
+        vm_code.append("div")
     else:
         raise Exception("unknown op", op)
     
