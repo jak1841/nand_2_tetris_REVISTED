@@ -1123,6 +1123,62 @@ class TestFunctions(unittest.TestCase):
         cmp.do_n_operations(False, 8)
         expected = "0000011111111111"
         self.assertEqual(expected, lg.get_binary_number(cmp.cpu.d_register))
+
+
+        # D/A
+        assembly_code = """
+            @420
+            D=A
+            @20
+            D=D/A          
+            @7
+            D=D/A  
+        """
+       
+
+        cmp.load_program(assem.get_binary_from_hack_assembly(assembly_code))
+        cmp.do_n_operations(False, 6)
+        expected = "0000000000000011"
+        self.assertEqual(expected, lg.get_binary_number(cmp.cpu.d_register))
+
+
+        # D/M
+        assembly_code = """
+            @2
+            D=A
+            @2000
+            
+            M=D
+            @11
+            D=A
+            @2000
+            D=D/M
+        """
+       
+
+        cmp.load_program(assem.get_binary_from_hack_assembly(assembly_code))
+        cmp.do_n_operations(False, 8)
+        expected = "0000000000000101"
+        self.assertEqual(expected, lg.get_binary_number(cmp.cpu.d_register))
+
+        # D/M
+        assembly_code = """
+            @5
+            D=A
+            @2000
+            
+            M=D
+            @12345
+            D=A
+            @2000
+            D=D/M
+        """
+       
+
+        cmp.load_program(assem.get_binary_from_hack_assembly(assembly_code))
+        cmp.do_n_operations(False, 8)
+        expected = "0000100110100101"
+        self.assertEqual(expected, lg.get_binary_number(cmp.cpu.d_register))
         
     def test_jump_assembly(self):
         cmp = lg.hack_computer()
@@ -1538,6 +1594,21 @@ class TestFunctions(unittest.TestCase):
         self.assertEqual("0100000110100000", lg.get_binary_number(cmp.data_memory[256]))
         self.assertEqual(lg.get_binary_number(assem.convert_int_to_np_array(257)), lg.get_binary_number(cmp.data_memory[0]))
 
+
+        # Divide
+        vm_code = [
+            "push constant 12345", 
+            "push constant 5", 
+            "div",
+            "push constant 6", 
+            "div",
+        ]
+
+        assembly_code = vm.convert_VM_code_to_assembly(vm_code)
+        cmp.load_program(assem.get_binary_from_hack_assembly(assembly_code))
+        cmp.do_n_operations(False, 50)
+        self.assertEqual("0000000110011011", lg.get_binary_number(cmp.data_memory[256]))
+        self.assertEqual(lg.get_binary_number(assem.convert_int_to_np_array(257)), lg.get_binary_number(cmp.data_memory[0]))
 
 
         vm_code = [
@@ -2313,11 +2384,12 @@ class TestFunctions(unittest.TestCase):
         cmp = lg.hack_computer()
         code = """
             class Main {
-                static int ram, ram1, ram2;
+                static int ram, ram1, ram2, ram3;
                 function void main() {
-                    let ram = Math.multiply(100, 0);
-                    let ram1 = Math.multiply(3, 6);
-                    let ram2 = Math.multiply(7500, 4);
+                    let ram = 100*0;
+                    let ram1 = 3*6;
+                    let ram2 = 7500 * 4;
+                    let ram3 = (7500*-1) + 7500;
 
                     return 0;
                 }
@@ -2329,8 +2401,8 @@ class TestFunctions(unittest.TestCase):
         vm_code = sa.generate_vm_code_with_bootstrap(code)      
         assembly_code = vm.convert_VM_code_to_assembly(vm_code)
         cmp.load_program(assem.get_binary_from_hack_assembly(assembly_code))
-        cmp.do_n_operations(False, 5500)
-        self.assertEqual(self.convert_list_ints_to_16_bit_binary([0, 18, 30000]), cmp.get_data_memory(16, 19))
+        cmp.do_n_operations(False, 300)
+        self.assertEqual(self.convert_list_ints_to_16_bit_binary([0, 18, 30000, 0]), cmp.get_data_memory(16, 20))
 
 
 

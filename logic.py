@@ -100,7 +100,9 @@ def alu_16_bit(x, y, zx, nx, zy, ny, f, no):
     if (zx and not (nx or zy or ny or f or no)):
         out = convert_boolean_np_array_to_a_int(x) * convert_boolean_np_array_to_a_int(y) % 65536
         out = get_bit_np_array(convert_decimal_to_binary(out))
-        pass
+    elif (nx and not (zx or zy or ny or f or no)):
+        out = int(convert_boolean_np_array_to_a_int(x) / convert_boolean_np_array_to_a_int(y)) % 65536
+        out = get_bit_np_array(convert_decimal_to_binary(out))
     else:
         if (zx):
             x = zero
@@ -174,7 +176,11 @@ def init_comp_hashmap():
 
     # Multiplication instruction
     comp_hashmap_to_binary["D*A"] = "0100000"
-    comp_hashmap_to_binary["D*M"] = "1100000" 
+    comp_hashmap_to_binary["D*M"] = "1100000"
+    comp_hashmap_to_binary["D/A"] = "0010000"
+    comp_hashmap_to_binary["D/M"] = "1010000"
+
+    # Division instruction 
 
 
     comp_hashmap_to_binary["M"] = "1110000"

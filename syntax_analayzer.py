@@ -123,6 +123,8 @@ def vm_writer_op(op):
         vm_code.append("gt")
     elif (op == "="):
         vm_code.append("eq")
+    elif (op == "*"):
+        vm_code.append("mult")
     else:
         raise Exception("unknown op", op)
     

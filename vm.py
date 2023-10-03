@@ -62,6 +62,8 @@ def convert_VM_code_to_assembly(VM_code_array):
             hack_assembly_code+= return_vm_to_assembly(x)+ '\n'
         elif (is_multiplication(x)):
             hack_assembly_code+= multiplication_instruction_vm_to_assembly(x) + '\n'
+        elif (is_division(x)):
+            hack_assembly_code+= division_instruction_vm_to_assembly(x) + '\n'
         else:
             raise Exception("Unknown VM instruction", x)
     
@@ -121,6 +123,23 @@ def multiplication_instruction_vm_to_assembly(VM_code):
         M=D*M
     """
 
+def is_division(VM_code):
+    return VM_code == "div"
+
+def division_instruction_vm_to_assembly(VM_code):
+    return """
+        @SP
+        M=M-1
+        A=M-1
+        D=M
+        A=A+1
+        D=D/M
+        A=A-1
+        M=D
+
+
+        
+    """
 
 
 
@@ -137,7 +156,6 @@ def subtract_instruction_vm_to_assembly(VM_code):
         D=M
         A=A-1
         M=M-D
-
     """
     
 
