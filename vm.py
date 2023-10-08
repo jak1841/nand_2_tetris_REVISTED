@@ -64,6 +64,8 @@ def convert_VM_code_to_assembly(VM_code_array):
             hack_assembly_code+= multiplication_instruction_vm_to_assembly(x) + '\n'
         elif (is_division(x)):
             hack_assembly_code+= division_instruction_vm_to_assembly(x) + '\n'
+        elif (is_power(x)):
+            hack_assembly_code += power_intruction_vm_to_assembly(x) + '\n'
         else:
             raise Exception("Unknown VM instruction", x)
     
@@ -141,7 +143,21 @@ def division_instruction_vm_to_assembly(VM_code):
         
     """
 
+def is_power(VM_code):
+    return VM_code == "power"
+    
 
+def power_intruction_vm_to_assembly(VM_code):
+    return """
+        @SP
+        M=M-1
+        A=M-1
+        D=M
+        A=A+1
+        D=D^M
+        A=A-1
+        M=D
+    """
 
 
     

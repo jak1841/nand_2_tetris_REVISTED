@@ -1646,6 +1646,27 @@ class TestFunctions(unittest.TestCase):
         self.assertEqual(lg.get_binary_number(assem.convert_int_to_np_array(257)), lg.get_binary_number(cmp.data_memory[0]))
 
 
+        # Power
+        vm_code = [
+            "push constant 12345", 
+            "push constant 0", 
+            "power",
+            "push constant 6", 
+            "power",
+            "push constant 3", 
+            "add", 
+            "push constant 7", 
+            "power", 
+        ]
+
+        assembly_code = vm.convert_VM_code_to_assembly(vm_code)
+        cmp.load_program(assem.get_binary_from_hack_assembly(assembly_code))
+        cmp.do_n_operations(False, 100)
+        self.assertEqual("0100000000000000", lg.get_binary_number(cmp.data_memory[256]))
+        self.assertEqual(lg.get_binary_number(assem.convert_int_to_np_array(257)), lg.get_binary_number(cmp.data_memory[0]))
+
+
+
         vm_code = [
             "push constant 10000",
             "push constant 20000", 
