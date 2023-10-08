@@ -584,28 +584,32 @@ def generate_vm_code_with_bootstrap(jack_code):
 def add_math_libary(jack_code):
     math_library = """
         class Math {
-            function int multiply(int x, int y) {
-                var int sum, shiftedX;
-                let shiftedX = 1;
-                while (shiftedX < 32768) {
-                    if ((shiftedX & y) = shiftedX) {
-                        let sum = sum + x;
-                    }
-                    let x = x + x;
-                    let shiftedX = shiftedX + shiftedX;
+            function void pow(int x, int y) {
+                if (y = 0){
+                    return 1;
                 }
-                return sum;
+                return x * Math.pow(x, y - 1);
             }
-
-
-
-
-
-
         }
 
     """
     return math_library + jack_code
+
+def add_screen_library(jack_code):
+    screen_library = """
+        class Screen {
+            function void drawPixel(int x, int y) {
+                var int RAM, address, value, bit_to_edit, ; 
+                let address = (32*y) + (x/16);
+                let value = RAM[16384 + address];
+
+                let bit_to_edit = x - ((x/16) * 16);
+
+
+
+            }
+        }
+    """
 
 def add_libraries_to_jack_code(jack_code):
     jack_code = add_math_libary(jack_code)

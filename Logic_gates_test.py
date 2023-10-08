@@ -1179,6 +1179,41 @@ class TestFunctions(unittest.TestCase):
         cmp.do_n_operations(False, 8)
         expected = "0000100110100101"
         self.assertEqual(expected, lg.get_binary_number(cmp.cpu.d_register))
+
+        # D^A
+        assembly_code = """
+            @2
+            D=A
+            @15
+            D=D^A
+        """
+       
+
+        cmp.load_program(assem.get_binary_from_hack_assembly(assembly_code))
+        cmp.do_n_operations(False, 4)
+        expected = "1000000000000000"
+        self.assertEqual(expected, lg.get_binary_number(cmp.cpu.d_register))
+
+        # D^M
+        assembly_code = """
+            @10
+            D=A
+            @2000
+            
+            M=D
+            @3
+            D=A
+            @2000
+            D=D^M
+        """
+       
+
+        cmp.load_program(assem.get_binary_from_hack_assembly(assembly_code))
+        cmp.do_n_operations(False, 8)
+        expected = "1110011010101001"
+        self.assertEqual(expected, lg.get_binary_number(cmp.cpu.d_register))
+
+
         
     def test_jump_assembly(self):
         cmp = lg.hack_computer()
@@ -2404,6 +2439,7 @@ class TestFunctions(unittest.TestCase):
         cmp.do_n_operations(False, 300)
         self.assertEqual(self.convert_list_ints_to_16_bit_binary([0, 18, 30000, 0]), cmp.get_data_memory(16, 20))
 
+        # Testing division 
         code = """
             class Main {
                 static int ram, ram1, ram2, ram3;
@@ -2426,10 +2462,26 @@ class TestFunctions(unittest.TestCase):
         cmp.do_n_operations(False, 300)
         self.assertEqual(self.convert_list_ints_to_16_bit_binary([0, 6, 1875, 0]), cmp.get_data_memory(16, 20))
 
+        # Testing power 
+        code = """
+            class Main {
+                static int ram, ram1, ram2, ram3;
+                function void main() {
+                    let ram = Math.pow(91, 0);
+                    let ram1 = Math.pow(1, 1);
+                    let ram2 = Math.pow(3, 3);
+                    let ram3 = Math.pow(9, 4);
+                    return 0;
+                }
+            }
 
+        """
 
-
-        pass
+        vm_code = sa.generate_vm_code_with_bootstrap(code)      
+        assembly_code = vm.convert_VM_code_to_assembly(vm_code)
+        cmp.load_program(assem.get_binary_from_hack_assembly(assembly_code))
+        cmp.do_n_operations(False, 3000)
+        self.assertEqual(self.convert_list_ints_to_16_bit_binary([1, 1, 27, 6561]), cmp.get_data_memory(16, 20))
 
 
 
