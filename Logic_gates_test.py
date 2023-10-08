@@ -2488,10 +2488,10 @@ class TestFunctions(unittest.TestCase):
             class Main {
                 static int ram, ram1, ram2, ram3;
                 function void main() {
-                    let ram = Math.pow(91, 0);
-                    let ram1 = Math.pow(1, 1);
-                    let ram2 = Math.pow(3, 3);
-                    let ram3 = Math.pow(9, 4);
+                    let ram = 91^ 0;
+                    let ram1 = 1 ^1;
+                    let ram2 = 3^3;
+                    let ram3 = 9^4;
                     return 0;
                 }
             }

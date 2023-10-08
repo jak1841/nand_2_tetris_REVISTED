@@ -77,10 +77,10 @@ def handle_integer_tokenizer(string, curr_index):
     return (("integer", curr_token), curr_index)
 
 def is_symbol_token(string, curr_index):
-    return string[curr_index] in "()[]}{.,;+-*/&|<>=-"
+    return string[curr_index] in "()[]}{.,;+-*/&|<>=-^"
 
 def handle_symbol_token(string, curr_index):
-    if (string[curr_index] in "()[]}{.,;+-*/&|<>=-"):
+    if (string[curr_index] in "()[]}{.,;+-*/&|<>=-^"):
         return (("symbol", string[curr_index]), curr_index + 1)
 
 def is_string_token(string, curr_index):
@@ -127,6 +127,8 @@ def vm_writer_op(op):
         vm_code.append("mult")
     elif (op == "/"):
         vm_code.append("div")
+    elif (op == "^"):
+        vm_code.append("power")
     else:
         raise Exception("unknown op", op)
     
@@ -461,7 +463,7 @@ def match_unaryOp(tokens):
     match_token_value(tokens, "-")
 
 def match_op(tokens):
-    if (tokens[0][1] not in "+-*/&|<>="):
+    if (tokens[0][1] not in "+-*/&|<>=^"):
         raise Exception("Expected op but got", tokens[0][1], tokens)
     return match_token_value(tokens, tokens[0][1])
 
@@ -513,7 +515,7 @@ def match_term(tokens):
 def match_expression(tokens):
     match_term(tokens)
 
-    while (tokens[0][1] in "+-*/&|<>="):
+    while (tokens[0][1] in "+-*/&|<>=^"):
         op = match_op(tokens)
         match_term(tokens)
         vm_writer_op(op)
