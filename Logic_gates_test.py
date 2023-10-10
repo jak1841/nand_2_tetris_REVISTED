@@ -2501,7 +2501,7 @@ class TestFunctions(unittest.TestCase):
         vm_code = sa.generate_vm_code_with_bootstrap(code)      
         assembly_code = vm.convert_VM_code_to_assembly(vm_code)
         cmp.load_program(assem.get_binary_from_hack_assembly(assembly_code))
-        cmp.do_n_operations(False, 3000)
+        cmp.do_n_operations(False, 300)
         self.assertEqual(self.convert_list_ints_to_16_bit_binary([1, 1, 27, 6561]), cmp.get_data_memory(16, 20))
 
 

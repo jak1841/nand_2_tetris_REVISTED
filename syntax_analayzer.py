@@ -601,18 +601,20 @@ def add_screen_library(jack_code):
     screen_library = """
         class Screen {
             function void drawPixel(int x, int y) {
-                var int RAM, address, value, bit_to_edit, ; 
+                var int RAM, address, value, bit_to_edit, mask; 
                 let address = (32*y) + (x/16);
                 let value = RAM[16384 + address];
-
                 let bit_to_edit = x - ((x/16) * 16);
-
-
-
+                let mask = 2^bit_to_edit;
+                let RAM[16384 + address] = value | mask;
+                return 0;
             }
         }
     """
 
+    return jack_code + screen_library
+
 def add_libraries_to_jack_code(jack_code):
     jack_code = add_math_libary(jack_code)
+    jack_code = add_screen_library(jack_code)
     return jack_code
