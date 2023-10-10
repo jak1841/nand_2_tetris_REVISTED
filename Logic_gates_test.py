@@ -2241,7 +2241,7 @@ class TestFunctions(unittest.TestCase):
         cmp = lg.hack_computer()
         code = """
             class bruh {
-                static int ram, integer_constant_, kc1, kc2, kc3, array, varname_ident, unary_term, complex_computation;
+                static int ram, integer_constant_, kc1, kc2, kc3, array, varname_ident, unary_term, complex_computation, not_computation;
                 function void d() {
                     let ram = 0;
                     let integer_constant_ = 230;
@@ -2253,6 +2253,8 @@ class TestFunctions(unittest.TestCase):
                     let varname_ident = kc1 + integer_constant_;
                     let unary_term = -kc1 + -1;
                     let complex_computation = (3 - 2) + 1 + 5;
+                    let not_computation = !(true & false);
+
                 }
             }
 
@@ -2264,7 +2266,7 @@ class TestFunctions(unittest.TestCase):
         cmp.load_program(assem.get_binary_from_hack_assembly(assembly_code))
         cmp.do_n_operations(False, 1000)
 
-        self.assertEqual(self.convert_list_ints_to_16_bit_binary([0, 230, 131071, 0, 0, 232, 229, 0, 7]), cmp.get_data_memory(16, 25))
+        self.assertEqual(self.convert_list_ints_to_16_bit_binary([0, 230, 131071, 0, 0, 232, 229, 0, 7, 131071]), cmp.get_data_memory(16, 26))
 
 
     def test_if_statement(self):

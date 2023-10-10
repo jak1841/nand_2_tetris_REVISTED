@@ -77,10 +77,10 @@ def handle_integer_tokenizer(string, curr_index):
     return (("integer", curr_token), curr_index)
 
 def is_symbol_token(string, curr_index):
-    return string[curr_index] in "()[]}{.,;+-*/&|<>=-^"
+    return string[curr_index] in "()[]}{.,;+-*/&|<>=-^!"
 
 def handle_symbol_token(string, curr_index):
-    if (string[curr_index] in "()[]}{.,;+-*/&|<>=-^"):
+    if (string[curr_index] in "()[]}{.,;+-*/&|<>=-^!"):
         return (("symbol", string[curr_index]), curr_index + 1)
 
 def is_string_token(string, curr_index):
@@ -129,6 +129,9 @@ def vm_writer_op(op):
         vm_code.append("div")
     elif (op == "^"):
         vm_code.append("power")
+    elif (op == "!"):
+        vm_code.append("not")
+
     else:
         raise Exception("unknown op", op)
     
@@ -377,8 +380,9 @@ label_counter = 0
 
 def match_if_statement(tokens):
     global label_counter
-    L1 = "if_label" + str(label_counter)
-    L2 = "if_label" + str(label_counter + 1)
+    label_counter+= 2
+    L1 = "if_label" + str(label_counter -2)
+    L2 = "if_label" + str(label_counter - 1)
 
     match_token_value(tokens, "if")
     match_token_value(tokens, "(")
@@ -404,7 +408,7 @@ def match_if_statement(tokens):
         match_token_value(tokens, "}")
     
     vm_code.append("label " + L2)
-    label_counter+= 2
+    
     
     
 
@@ -460,10 +464,13 @@ def match_keywordConstant(tokens):
     return match_token_value(tokens, tokens[0][1])
 
 def match_unaryOp(tokens):
-    match_token_value(tokens, "-")
+    if (tokens[0][1] == "-"):
+        match_token_value(tokens, "-")
+    else:
+        match_token_value(tokens, "!")
 
 def match_op(tokens):
-    if (tokens[0][1] not in "+-*/&|<>=^"):
+    if (tokens[0][1] not in "+-*/&|<>=^!"):
         raise Exception("Expected op but got", tokens[0][1], tokens)
     return match_token_value(tokens, tokens[0][1])
 
@@ -504,10 +511,15 @@ def match_term(tokens):
         match_token_value(tokens, ")")
 
     # unaryOp term
-    elif (value_token == "-"):
-        match_token_value(tokens, "-")
-        match_term(tokens)
-        vm_code.append("neg")
+    elif (value_token in "-!"):
+        if (value_token == "-"):
+            match_token_value(tokens, "-")
+            match_term(tokens)
+            vm_code.append("neg")
+        else:
+            match_token_value(tokens, "!")
+            match_term(tokens)
+            vm_code.append("not")
     else:
         raise Exception("unknown term", tokens)
     
@@ -515,7 +527,7 @@ def match_term(tokens):
 def match_expression(tokens):
     match_term(tokens)
 
-    while (tokens[0][1] in "+-*/&|<>=^"):
+    while (tokens[0][1] in "+-*/&|<>=^!"):
         op = match_op(tokens)
         match_term(tokens)
         vm_writer_op(op)
@@ -586,11 +598,11 @@ def generate_vm_code_with_bootstrap(jack_code):
 def add_math_libary(jack_code):
     math_library = """
         class Math {
-            function void pow(int x, int y) {
-                if (y = 0){
-                    return 1;
-                }
-                return x * Math.pow(x, y - 1);
+            function void abs(int x) {
+                if (x > 0) {
+                    return x;
+                } 
+                return -x;
             }
         }
 
@@ -601,12 +613,74 @@ def add_screen_library(jack_code):
     screen_library = """
         class Screen {
             function void drawPixel(int x, int y) {
-                var int RAM, address, value, bit_to_edit, mask; 
-                let address = (32*y) + (x/16);
-                let value = RAM[16384 + address];
-                let bit_to_edit = x - ((x/16) * 16);
-                let mask = 2^bit_to_edit;
-                let RAM[16384 + address] = value | mask;
+                var int RAM, address, value; 
+                let address = (32*y) + (x/16) + 16384;
+                let value = RAM[address];
+                let RAM[address] = value | (2^(x - ((x/16) * 16)));
+                return 0;
+            }
+
+
+            function void drawLine(int x1, int y1, int x2, int y2) {
+                var int dx, dy;
+                var int temp;
+                
+                
+                if( x1 > x2 ) {
+                    let temp = x1;
+                    let x1 = x2;
+                    let x2 = temp;
+                    let temp = y1;
+                    let y1 = y2;
+                    let y2 = temp;
+                }
+
+                let dx = x2 - x1;
+                let dy = y2 - y1;
+                
+                if( dx = 0 ) {
+                    do Screen.drawVerticalLine( x1, y1, y2 );
+                }
+                else { 
+                    if( dy = 0 ) {
+                        do Screen.drawHorizontalLine( x1, x2, y1 );
+                    }
+                    else {
+                        do Screen.drawDiagonalLine( x1, y1, x2, y2, dx, dy );
+                    }
+                }
+                
+                return 0;
+            }
+
+
+            function void drawDiagonalLine( int x1, int y1, int x2, int y2, int dx, int dy ) {
+                var int a, b;
+                var int adyMinusbdx;
+                var int y_incr;
+
+                let a = 0;
+                let b = 0;
+                let adyMinusbdx = 0;
+                
+                if( dy < 0 ) {
+                    let y_incr = -1;
+                }
+                else {
+                    let y_incr = 1;
+                }
+
+                while( !(a > dx) & (((y_incr = 1) & !(b > dy)) | ((y_incr = -1) & !(b < dy))) ) {
+                    do Screen.drawPixel( x1+a, y1+b );
+                    if( adyMinusbdx < 0 ) {
+                        let a = a + 1;
+                        let adyMinusbdx = adyMinusbdx + (dy*y_incr);
+                    }
+                    else {
+                        let b = b + y_incr;
+                        let adyMinusbdx = adyMinusbdx - dx;
+                    }
+                }
                 return 0;
             }
         }
