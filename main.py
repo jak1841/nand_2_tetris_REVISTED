@@ -24,25 +24,14 @@ code = """
             class Main {
                 static int ram, ram1, ram2, ram3;
                 function void main() {
-                    do Screen.drawPixel(32, 0);
-                    do Screen.drawPixel(32, 1);
-                    do Screen.drawPixel(32, 2);
-                    do Screen.drawPixel(32, 3);
-                    do Screen.drawPixel(32, 4);
-                    do Screen.drawPixel(32, 5);
-                    do Screen.drawPixel(32, 6);
-                    do Screen.drawPixel(32, 7);
-                    do Screen.drawPixel(32, 8);
-                    do Screen.drawPixel(32, 9);
-                    do Screen.drawPixel(32, 10);
-                    do Screen.drawPixel(32, 11);
-                    do Screen.drawPixel(32, 12);
-                    do Screen.drawPixel(32, 13);
-                    do Screen.drawPixel(32, 16);
-                    do Screen.drawPixel(32, 17);
-                    do Screen.drawPixel(32, 18);
-                    do Screen.drawPixel(32, 19);
+                    do Main.draw_cross();
+                    return 0;
+                }
 
+                function void draw_cross() {
+                    
+                    do Screen.drawRectangle(0, 128-16, 511, 128+16);
+                    do Screen.drawRectangle(256-16, 0, 256+16, 255);
 
                     return 0;
                 }
@@ -62,15 +51,16 @@ cmp.load_program(assem.get_binary_from_hack_assembly(assembly_code))
 
 
 def update_pixels():
-    cmp.do_n_operations(False, 10000)
+    cmp.do_n_operations(False, 300000)
     pixels = cmp.get_data_memory(16384, 16384 + (32*256))
     index = 0
     for x in range(8192):
         for y in range(16):
+            reverse_index = 15 - y
             col = index
             row = int(x/32)
             
-            if (pixels[x][y] == "1"):
+            if (pixels[x][reverse_index] == "1"):
                 img.put("#deeb34", (col, row))
             else:
                 img.put("#000000", (col,row))
@@ -81,9 +71,9 @@ def update_pixels():
 
     
     
-    window.after(1000, update_pixels)
+    window.after(100, update_pixels)
 
-window.after(1000, update_pixels)
+window.after(100, update_pixels)
 window.mainloop()
 
 

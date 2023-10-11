@@ -601,8 +601,9 @@ def add_math_libary(jack_code):
             function void abs(int x) {
                 if (x > 0) {
                     return x;
-                } 
-                return -x;
+                } else {
+                    return -x;
+                }
             }
         }
 
@@ -610,13 +611,19 @@ def add_math_libary(jack_code):
     return math_library + jack_code
 
 def add_screen_library(jack_code):
+    """
+
+        Credit for this class goes to https://github.com/havivha/Nand2Tetris/blob/master/12/Screen.jack
+        Reason is because this type of stuff is so complicated for me to code and I was stuck on this for legit so long 
+
+    """
     screen_library = """
         class Screen {
             function void drawPixel(int x, int y) {
-                var int RAM, address, value; 
+                var int RAM, address, mask; 
                 let address = (32*y) + (x/16) + 16384;
-                let value = RAM[address];
-                let RAM[address] = value | (2^(x - ((x/16) * 16)));
+                let mask = 2^(x & 15);
+                let RAM[address] = RAM[address] | mask;
                 return 0;
             }
 
@@ -683,6 +690,77 @@ def add_screen_library(jack_code):
                 }
                 return 0;
             }
+
+            function void drawVerticalLine( int x, int y1, int y2 ) {
+                var int temp;
+                
+                if( y1 > y2 ) {
+                    let temp = y1;
+                    let y1 = y2;
+                    let y2 = temp;
+                }
+                
+                while( !(y1 > y2) ) {
+                    do Screen.drawPixel( x, y1 );
+                    let y1 = y1 + 1;
+                }
+                return 0;
+            }
+
+            function void drawHorizontalLine( int x1, int x2, int y ) {
+                var int start_addr, end_addr, screen;
+                var int x1mod16, x2mod16;
+
+                let screen = 16384;
+                
+                let x1mod16 = x1 & 15;
+                let x2mod16 = x2 & 15;
+                let start_addr = (y*32) + (x1/16);
+                let end_addr = (y*32) + (x2/16) + (x2mod16=0);
+
+                if( start_addr = end_addr ) {   
+                    do Screen.draw_short_horizontal_line( x1, x2, y );
+                }
+                else { 
+                    if( !(x1mod16 = 0) ) {      
+                        let start_addr = start_addr + 1;
+                        do Screen.draw_short_horizontal_line( x1, x1+16-x1mod16, y );
+                    }
+                    if( !(x2mod16 = 0) ) {     
+                        let end_addr = end_addr - 1;
+                        do Screen.draw_short_horizontal_line( x2-x2mod16, x2, y );
+                    }
+                    while( !(start_addr > end_addr) ) {     
+                        let screen[start_addr] = true;
+                        let start_addr = start_addr + 1;
+                    }
+                }
+                
+                return 0;
+            }
+            
+            function void draw_short_horizontal_line( int x1, int x2, int y ) {
+                while( !(x1 > x2) ) {
+                    do Screen.drawPixel( x1, y );
+                    let x1 = x1 + 1;
+                }
+            
+                return 0;
+            }
+
+            function void drawRectangle(int x1, int y1, int x2, int y2) {
+                var int y;
+                
+                let y = y1;
+                while( !(y > y2) ) {
+                    do Screen.drawHorizontalLine(x1, x2, y);
+                    let y = y + 1;
+                }
+                return 0;
+            }
+
+
+            
         }
     """
 
